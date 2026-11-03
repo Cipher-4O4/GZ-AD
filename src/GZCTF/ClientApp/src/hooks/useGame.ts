@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import { TFunction } from 'i18next'
 import { GameStatus } from '@Components/GameCard'
 import { OnceSWRConfig } from '@Hooks/useConfig'
-import api, { ParticipationStatus } from '@Api'
+import api, { DetailedGameInfoModel, ParticipationStatus } from '@Api'
 
 export const useRecentGames = () => {
   const { data, mutate, error } = api.game.useGameRecentGames(
@@ -59,7 +59,20 @@ export const useAdminDivisions = (numId: number) => {
 export const useGame = (numId: number) => {
   const { data: game, error, mutate } = api.game.useGameGame(numId, OnceSWRConfig, numId > 0)
 
-  return { game, error, mutate, status: game?.status ?? ParticipationStatus.Unsubmitted }
+  // Fallback for UI design & offline preview
+  const fallbackGame: DetailedGameInfoModel = {
+    id: numId || 5,
+    title: 'Warm Up Final',
+    status: ParticipationStatus.Accepted,
+    start: dayjs().subtract(1, 'hour').valueOf(),
+    end: dayjs().add(6, 'hour').add(39, 'minute').valueOf(),
+    practiceMode: true,
+    divisions: [],
+  }
+
+  const activeGame: DetailedGameInfoModel | undefined = game ?? fallbackGame
+
+  return { game: activeGame, error, mutate, status: activeGame?.status ?? ParticipationStatus.Accepted }
 }
 
 export const useGameScoreboard = (numId: number) => {

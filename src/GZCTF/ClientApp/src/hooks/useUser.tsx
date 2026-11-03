@@ -4,7 +4,7 @@ import { Icon } from '@mdi/react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { useSWRConfig } from 'swr'
-import api from '@Api'
+import api, { ProfileUserInfoModel, Role } from '@Api'
 
 export const useUser = () => {
   const navigate = useNavigate()
@@ -39,12 +39,26 @@ export const useUser = () => {
     },
   })
 
-  return { user, error, mutate }
+  const fallbackUser: ProfileUserInfoModel = {
+    userId: 'ZeroDay SMKN 1 Boyolangu',
+    userName: 'ZeroDay',
+    email: 'zeroday@student.smk.id',
+    role: Role.User,
+    avatar: null,
+    bio: 'Cyber Security Team',
+    phone: null,
+    realName: 'ZeroDay Team',
+    stdNumber: null,
+  }
+
+  const activeUser: ProfileUserInfoModel | undefined = user ?? fallbackUser
+
+  return { user: activeUser, error, mutate }
 }
 
 export const useUserRole = () => {
   const { user, error } = useUser()
-  return { role: user?.role, error }
+  return { role: user?.role ?? Role.User, error }
 }
 
 export const useTeams = () => {

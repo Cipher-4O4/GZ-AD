@@ -42,7 +42,7 @@ export const PostCard: FC<PostCardProps> = ({ post, onTogglePinned }) => {
         <Icon
           path={mdiFormatQuoteOpen}
           size={1.5}
-          color={theme.colors[theme.primaryColor][colorScheme === 'dark' ? 7 : 5]}
+          color={theme.colors[theme.primaryColor]?.[colorScheme === 'dark' ? 7 : 5] ?? '#18cb9e'}
         />
         <Stack gap="xs" w="calc(100% - 3rem)">
           {RequireRole(Role.Admin, role) ? (

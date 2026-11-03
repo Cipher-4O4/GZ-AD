@@ -68,21 +68,23 @@ const Home: FC = () => {
         <Stack align="center">
           <Group wrap="nowrap" gap={4} justify="space-between" align="flex-start" w="100%">
             <Stack className={classes.posts}>
-              {isMobile
-                ? posts?.map((post) => <MobilePostCard key={post.id} post={post} onTogglePinned={onTogglePinned} />)
-                : posts?.map((post) => <PostCard key={post.id} post={post} onTogglePinned={onTogglePinned} />)}
+              {Array.isArray(posts) &&
+                (isMobile
+                  ? posts.map((post) => <MobilePostCard key={post.id} post={post} onTogglePinned={onTogglePinned} />)
+                  : posts.map((post) => <PostCard key={post.id} post={post} onTogglePinned={onTogglePinned} />))}
             </Stack>
             {!isMobile && (
               <nav className={classes.wrapper}>
                 <div className={classes.inner}>
                   <Stack>
                     <Group wrap="nowrap">
-                      <Icon path={mdiFlagCheckered} size={1.5} color={theme.colors[theme.primaryColor][4]} />
+                      <Icon path={mdiFlagCheckered} size={1.5} color={theme.colors[theme.primaryColor]?.[4] ?? '#18cb9e'} />
                       <Title order={3}>{t('common.content.home.recent_games')}</Title>
                     </Group>
-                    {showGames?.map((game) => (
-                      <RecentGame key={game.id} game={game} />
-                    ))}
+                    {Array.isArray(showGames) &&
+                      showGames.map((game) => (
+                        <RecentGame key={game.id} game={game} />
+                      ))}
                   </Stack>
                 </div>
               </nav>
