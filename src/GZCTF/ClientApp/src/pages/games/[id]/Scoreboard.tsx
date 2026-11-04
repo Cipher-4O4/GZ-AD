@@ -1,23 +1,37 @@
 import { Stack } from '@mantine/core'
 import { FC, useState } from 'react'
 import { useParams } from 'react-router'
+import { ADScoreboard } from '@Components/ADScoreboard'
 import { ScoreboardTable } from '@Components/ScoreboardTable'
 import { TeamRank } from '@Components/TeamRank'
 import { WithGameTab } from '@Components/WithGameTab'
 import { WithNavBar } from '@Components/WithNavbar'
 import { ScoreTimeLine } from '@Components/charts/ScoreTimeLine'
 import { MobileScoreboardTable } from '@Components/mobile/ScoreboardTable'
+import { isAdGame } from '@Utils/Ad'
 import { useIsMobile } from '@Utils/ThemeOverride'
 import { useGameTeamInfo } from '@Hooks/useGame'
 
 const Scoreboard: FC = () => {
   const { id } = useParams()
   const numId = parseInt(id ?? '-1')
-  const { teamInfo, error } = useGameTeamInfo(numId)
+  const { teamInfo, game, error } = useGameTeamInfo(numId)
 
   const [divisionId, setDivisionId] = useState<number | null>(null)
   const isMobile = useIsMobile(1080)
   const isVertical = useIsMobile()
+
+  if (isAdGame(game)) {
+    return (
+      <WithNavBar width="90%" minWidth={0}>
+        <WithGameTab>
+          <Stack pb="2rem">
+            <ADScoreboard />
+          </Stack>
+        </WithGameTab>
+      </WithNavBar>
+    )
+  }
 
   return (
     <WithNavBar width="90%" minWidth={0}>
