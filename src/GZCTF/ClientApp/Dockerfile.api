@@ -5,3 +5,4 @@ COPY mock-server.ts ./
 
 EXPOSE 8080
 CMD ["bun", "run", "mock-server.ts"]
+
