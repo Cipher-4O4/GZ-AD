@@ -1169,6 +1169,11 @@ Bun.serve({
         if (contentType) {
           fileHeaders['Content-Type'] = contentType
         }
+        if (cleanPath.startsWith('/static/')) {
+          fileHeaders['Cache-Control'] = 'public, max-age=31536000, immutable'
+        } else {
+          fileHeaders['Cache-Control'] = 'no-cache'
+        }
         return new Response(directFile, { headers: fileHeaders })
       }
 
@@ -1187,7 +1192,10 @@ Bun.serve({
           .replace(/%nonce%/g, 'ionic2026')
 
         return new Response(html, {
-          headers: { 'Content-Type': 'text/html; charset=utf-8' },
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'Cache-Control': 'no-cache',
+          },
         })
       }
     }
