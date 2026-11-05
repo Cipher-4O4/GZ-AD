@@ -700,6 +700,17 @@ Bun.serve({
       )
     }
 
+    if (path.includes('/notices')) {
+      const liveNotices = state.attacks.slice(0, 10).map((atk, idx) => ({
+        id: idx + 1,
+        title: atk.service,
+        content: atk.text,
+        time: new Date().toISOString(),
+        type: 'FirstBlood',
+      }))
+      return Response.json(liveNotices, { headers })
+    }
+
     if (path.includes('/details')) {
       const z3roday = state.teams.find((t) => t.id === 7) || state.teams[6]
       return Response.json(

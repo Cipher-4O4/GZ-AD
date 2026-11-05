@@ -110,7 +110,7 @@ export const ADSidebar: FC = () => {
   }
 
   const feed = useMemo(() => {
-    const list = notices ?? []
+    const list = Array.isArray(notices) ? notices : []
     const filtered = list.filter((notice) => {
       if (feedTab === 'all') return true
       if (feedTab === 'challenge')
