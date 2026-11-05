@@ -408,6 +408,22 @@ function getTimeStr() {
   return new Date().toLocaleTimeString('id-ID', { hour12: false }).replace(/:/g, '.')
 }
 
+const MIME_TYPES: Record<string, string> = {
+  '.js': 'application/javascript; charset=utf-8',
+  '.mjs': 'application/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.svg': 'image/svg+xml',
+  '.webp': 'image/webp',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.ttf': 'font/ttf',
+  '.html': 'text/html; charset=utf-8',
+}
+
 // Main HTTP Server
 Bun.serve({
   port,
@@ -698,7 +714,16 @@ Bun.serve({
       const cleanPath = originalPath === '/' ? '/index.html' : originalPath
       const directFile = Bun.file(`./build${cleanPath}`)
       if (await directFile.exists()) {
-        return new Response(directFile)
+        const dotIdx = cleanPath.lastIndexOf('.')
+        const ext = dotIdx >= 0 ? cleanPath.substring(dotIdx).toLowerCase() : ''
+        const contentType = MIME_TYPES[ext]
+        const fileHeaders: Record<string, string> = {
+          'Access-Control-Allow-Origin': '*',
+        }
+        if (contentType) {
+          fileHeaders['Content-Type'] = contentType
+        }
+        return new Response(directFile, { headers: fileHeaders })
       }
 
       // Do NOT serve index.html for missing static assets (prevent module script MIME error)
