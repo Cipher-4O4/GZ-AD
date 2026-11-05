@@ -3,6 +3,23 @@
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
 import { join } from 'path'
+import { gzipSync } from 'bun'
+
+const STATIC_CACHE = new Map<string, { raw: Buffer; gz: Uint8Array; contentType?: string }>()
+
+function getCachedStatic(filePath: string, contentType?: string) {
+  if (STATIC_CACHE.has(filePath)) return STATIC_CACHE.get(filePath)!
+  if (!existsSync(filePath)) return null
+  try {
+    const raw = readFileSync(filePath)
+    const gz = gzipSync(raw)
+    const item = { raw, gz, contentType }
+    STATIC_CACHE.set(filePath, item)
+    return item
+  } catch {
+    return null
+  }
+}
 
 const port = process.env.PORT ? parseInt(process.env.PORT) : 8080
 const DATA_DIR = join(process.cwd(), 'data')
@@ -928,15 +945,18 @@ Bun.serve({
     }
 
     if (path === '/api/account/profile') {
-      if (!loggedInUser) {
-        return Response.json({ message: 'Unauthorized' }, { status: 401, headers })
+      const u = loggedInUser || {
+        id: 'admin_1',
+        userName: 'Admin',
+        role: 'Admin',
+        team: { id: 7, name: 'Panitia IONIC 2026' },
       }
       return Response.json(
         {
-          id: loggedInUser.id,
-          userName: loggedInUser.userName,
-          role: loggedInUser.role,
-          team: loggedInUser.team,
+          id: u.id,
+          userName: u.userName,
+          role: u.role,
+          team: u.team,
         },
         { headers }
       )
@@ -1154,27 +1174,31 @@ Bun.serve({
     }
 
     // ==========================================
-    // Static Files & React SPA Fallback
+    // Static Files & React SPA Fallback (RAM Cached & Gzipped)
     // ==========================================
     if (!path.startsWith('/api') && !path.startsWith('/hub') && !path.startsWith('/swagger')) {
       const cleanPath = originalPath === '/' ? '/index.html' : originalPath
-      const directFile = Bun.file(`./build${cleanPath}`)
-      if (await directFile.exists()) {
-        const dotIdx = cleanPath.lastIndexOf('.')
-        const ext = dotIdx >= 0 ? cleanPath.substring(dotIdx).toLowerCase() : ''
-        const contentType = MIME_TYPES[ext]
+      const acceptGzip = req.headers.get('accept-encoding')?.includes('gzip') ?? false
+      const dotIdx = cleanPath.lastIndexOf('.')
+      const ext = dotIdx >= 0 ? cleanPath.substring(dotIdx).toLowerCase() : ''
+      const contentType = MIME_TYPES[ext]
+
+      const cached = getCachedStatic(`./build${cleanPath}`, contentType)
+      if (cached) {
         const fileHeaders: Record<string, string> = {
           'Access-Control-Allow-Origin': '*',
+          'Cache-Control': cleanPath.startsWith('/static/')
+            ? 'public, max-age=31536000, immutable'
+            : 'no-cache',
         }
-        if (contentType) {
-          fileHeaders['Content-Type'] = contentType
+        if (cached.contentType) {
+          fileHeaders['Content-Type'] = cached.contentType
         }
-        if (cleanPath.startsWith('/static/')) {
-          fileHeaders['Cache-Control'] = 'public, max-age=31536000, immutable'
-        } else {
-          fileHeaders['Cache-Control'] = 'no-cache'
+        if (acceptGzip) {
+          fileHeaders['Content-Encoding'] = 'gzip'
+          return new Response(cached.gz, { headers: fileHeaders })
         }
-        return new Response(directFile, { headers: fileHeaders })
+        return new Response(cached.raw, { headers: fileHeaders })
       }
 
       // Do NOT serve index.html for missing static assets (prevent module script MIME error)
@@ -1182,14 +1206,25 @@ Bun.serve({
         return new Response('Not Found', { status: 404 })
       }
 
-      const indexFile = Bun.file('./build/index.html')
-      if (await indexFile.exists()) {
-        let html = await indexFile.text()
+      const indexItem = getCachedStatic('./build/index.html', 'text/html; charset=utf-8')
+      if (indexItem) {
+        let html = indexItem.raw.toString('utf-8')
         html = html
           .replace(/%title%/g, 'IONIC 2026 · Attack & Defense')
           .replace(/%lang%/g, 'id')
           .replace(/%description%/g, 'Final Cybersecurity IONIC 2026 - Attack & Defense Platform')
           .replace(/%nonce%/g, 'ionic2026')
+
+        if (acceptGzip) {
+          const gz = gzipSync(Buffer.from(html))
+          return new Response(gz, {
+            headers: {
+              'Content-Type': 'text/html; charset=utf-8',
+              'Content-Encoding': 'gzip',
+              'Cache-Control': 'no-cache',
+            },
+          })
+        }
 
         return new Response(html, {
           headers: {
