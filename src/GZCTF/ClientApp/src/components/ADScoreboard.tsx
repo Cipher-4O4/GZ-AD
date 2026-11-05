@@ -73,31 +73,42 @@ export const ADScoreboard: FC = () => {
   const [search, setSearch] = useState('')
   const [round, setRound] = useState(26)
   const [tick, setTick] = useState(3)
-  const [secondsLeft, setSecondsLeft] = useState(22)
+  const [secondsLeft, setSecondsLeft] = useState(60)
+  const [scoreboardRows, setScoreboardRows] = useState<AdScoreRow[]>(AD_SCOREBOARD)
 
-  // Countdown timer
+  // Realtime Polling of Live Scoreboard from A&D Engine
   useEffect(() => {
-    const timer = setInterval(() => {
-      setSecondsLeft((prev) => {
-        if (prev <= 1) {
-          setTick((t) => (t >= 5 ? 1 : t + 1))
-          return 30
+    const fetchScoreboard = async () => {
+      try {
+        const res = await fetch('/api/ad/scoreboard')
+        if (res.ok) {
+          const data = await res.json()
+          if (data.rows && Array.isArray(data.rows)) {
+            setScoreboardRows(data.rows)
+          }
+          if (typeof data.round === 'number') setRound(data.round)
+          if (typeof data.tick === 'number') setTick(data.tick)
+          if (typeof data.secondsLeft === 'number') setSecondsLeft(data.secondsLeft)
         }
-        return prev - 1
-      })
-    }, 1000)
-    return () => clearInterval(timer)
+      } catch (e) {
+        // silent fetch error
+      }
+    }
+
+    fetchScoreboard()
+    const interval = setInterval(fetchScoreboard, 2000)
+    return () => clearInterval(interval)
   }, [])
 
   const visible = useMemo(() => {
     const query = search.trim().toLowerCase()
     return query
-      ? AD_SCOREBOARD.filter(
+      ? scoreboardRows.filter(
           (row) =>
             row.name.toLowerCase().includes(query) || row.school.toLowerCase().includes(query)
         )
-      : AD_SCOREBOARD
-  }, [search])
+      : scoreboardRows
+  }, [search, scoreboardRows])
 
   const findSelf = () => {
     setSearch(SELF_TEAM)

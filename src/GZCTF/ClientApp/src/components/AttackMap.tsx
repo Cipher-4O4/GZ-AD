@@ -1,18 +1,24 @@
 import {
   ActionIcon,
+  Alert,
   Badge,
   Box,
+  Button,
   Group,
   Image,
+  Modal,
   ScrollArea,
+  Select,
   Stack,
   Text,
+  TextInput,
   Title,
   Tooltip,
 } from '@mantine/core'
 import {
   mdiCircle,
   mdiCrosshairsGps,
+  mdiFlag,
   mdiFullscreen,
   mdiFullscreenExit,
   mdiNuke,
@@ -225,54 +231,45 @@ export const AttackMap: FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [round, setRound] = useState(19)
   const [tick, setTick] = useState(2)
-  const [secondsLeft, setSecondsLeft] = useState(22)
+  const [secondsLeft, setSecondsLeft] = useState(60)
   const [activeAttacks, setActiveAttacks] = useState<AttackEvent[]>([])
+  const [teams, setTeams] = useState<TeamNode[]>(FINALIST_TEAMS)
   const [selectedTeam, setSelectedTeam] = useState<TeamNode>(FINALIST_TEAMS[6]) // Default Z3RODAY
   const [nukeDetonation, setNukeDetonation] = useState<TeamNode | null>(null)
   const [activeAttacker, setActiveAttacker] = useState<TeamNode | null>(null)
 
+  // Flag submit modal state
+  const [submitModalOpen, setSubmitModalOpen] = useState(false)
+  const [flagInput, setFlagInput] = useState('')
+  const [submitterTeamId, setSubmitterTeamId] = useState('7') // Z3RODAY default
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitStatus, setSubmitStatus] = useState<{ success: boolean; msg: string } | null>(null)
+
   const [activityLogs, setActivityLogs] = useState<
-    { time: string; service: string; text: string; isMumble?: boolean }[]
+    { time: string; service: string; text: string; isNuke?: boolean }[]
   >([
     {
       time: '15.53.45',
       service: 'simple-crypto',
-      text: 'Kak kita izin ga ngedit, mau ikut J...',
-      isMumble: false,
+      text: 'Z3RODAY → WilSec - BOEDOET 47 (Flag captured!)',
+      isNuke: true,
     },
     {
       time: '15.53.45',
       service: 'simple-crypto',
-      text: 'Offset e offside → SMAPa 2 (Flag captured!)',
-      isMumble: false,
-    },
-    {
-      time: '15.53.45',
-      service: 'simple-pwn',
-      text: 'ZeroDay SMKN 1 Boyolangu → Pungging Jaya (Flag captured!)',
-      isMumble: false,
-    },
-    {
-      time: '15.53.45',
-      service: 'simple-crypto',
-      text: 'Es Teh Jumbo - MUMBLE',
-      isMumble: true,
+      text: 'United Shell-SCC → Maaf TKA Pilih CTF (Flag captured!)',
+      isNuke: true,
     },
     {
       time: '15.53.44',
-      service: 'simple-crypto',
-      text: 'United Shell-SCC → WilSec - Apa aja (Flag captured!)',
-      isMumble: false,
-    },
-    {
-      time: '15.53.40',
-      service: 'simple-pwn',
-      text: 'rootsanctum → Maaf TKA Pilih CTF (Flag captured!)',
-      isMumble: false,
+      service: 'simple-web',
+      text: 'rootsanctum → WilSec - Apa aja (Flag captured!)',
+      isNuke: true,
     },
   ])
 
   const containerRef = useRef<HTMLDivElement>(null)
+  const processedAttackIds = useRef<Set<string>>(new Set(['atk_init_1', 'atk_init_2', 'atk_init_3']))
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -284,87 +281,127 @@ export const AttackMap: FC = () => {
     }
   }
 
-  // Next Tick countdown timer
+  // Realtime Polling of Live Attack & Defense Engine
   useEffect(() => {
-    const timer = setInterval(() => {
-      setSecondsLeft((prev) => {
-        if (prev <= 1) {
-          setTick((t) => (t >= 5 ? 1 : t + 1))
-          return 30
+    const fetchState = async () => {
+      try {
+        const res = await fetch('/api/ad/state')
+        if (!res.ok) return
+        const data = await res.json()
+
+        if (typeof data.round === 'number') setRound(data.round)
+        if (typeof data.tick === 'number') setTick(data.tick)
+        if (typeof data.secondsLeft === 'number') setSecondsLeft(data.secondsLeft)
+
+        // Merge teams with island coordinates
+        if (data.teams && Array.isArray(data.teams)) {
+          setTeams((prev) => {
+            const updated = prev.map((node) => {
+              const remote = data.teams.find((t: any) => t.id === parseInt(node.id) || t.name === node.name)
+              if (remote) {
+                return {
+                  ...node,
+                  score: remote.score,
+                  rank: remote.rank,
+                  status: remote.status,
+                }
+              }
+              return node
+            })
+            return updated.sort((a, b) => a.rank - b.rank)
+          })
         }
-        return prev - 1
-      })
-    }, 1000)
-    return () => clearInterval(timer)
-  }, [])
 
-  // Ballistic Nuclear Missile Strike Generator
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const attackerIdx = Math.floor(Math.random() * FINALIST_TEAMS.length)
-      let victimIdx = Math.floor(Math.random() * FINALIST_TEAMS.length)
-      while (victimIdx === attackerIdx) {
-        victimIdx = Math.floor(Math.random() * FINALIST_TEAMS.length)
+        // Process any incoming attacks
+        if (data.attacks && Array.isArray(data.attacks)) {
+          for (const atk of data.attacks) {
+            if (!processedAttackIds.current.has(atk.id)) {
+              processedAttackIds.current.add(atk.id)
+
+              const attackerNode = FINALIST_TEAMS.find((t) => parseInt(t.id) === atk.attackerId) || FINALIST_TEAMS[0]
+              const victimNode = FINALIST_TEAMS.find((t) => parseInt(t.id) === atk.victimId) || FINALIST_TEAMS[1]
+
+              // Parabolic trajectory arc calculation
+              const x1 = attackerNode.x * 10.24
+              const y1 = attackerNode.y * 5.71
+              const x2 = victimNode.x * 10.24
+              const y2 = victimNode.y * 5.71
+
+              const midX = (x1 + x2) / 2
+              const dist = Math.hypot(x2 - x1, y2 - y1)
+              const arcElevation = Math.max(60, Math.min(150, dist * 0.35))
+              const midY = Math.min(y1, y2) - arcElevation
+              const pathD = `M ${x1} ${y1} Q ${midX} ${midY} ${x2} ${y2}`
+
+              const newAttackEvent: AttackEvent = {
+                id: atk.id,
+                time: atk.time,
+                service: atk.service,
+                attacker: attackerNode,
+                victim: victimNode,
+                pathD,
+                color: atk.color || '#fab005',
+              }
+
+              setActiveAttacks((prev) => [...prev.slice(-3), newAttackEvent])
+              setActiveAttacker(attackerNode)
+              setNukeDetonation(victimNode)
+
+              setActivityLogs((prev) => [
+                {
+                  time: atk.time,
+                  service: atk.service,
+                  text: atk.text,
+                  isNuke: atk.isNuke,
+                },
+                ...prev.slice(0, 20),
+              ])
+
+              setTimeout(() => {
+                setNukeDetonation(null)
+                setActiveAttacker(null)
+              }, 2500)
+            }
+          }
+        }
+      } catch (err) {
+        // silent fetch error
       }
+    }
 
-      const attacker = FINALIST_TEAMS[attackerIdx]
-      const victim = FINALIST_TEAMS[victimIdx]
-
-      // Parabolic ballistic trajectory arc calculation
-      const x1 = attacker.x * 10.24
-      const y1 = attacker.y * 5.71
-      const x2 = victim.x * 10.24
-      const y2 = victim.y * 5.71
-
-      const midX = (x1 + x2) / 2
-      const dist = Math.hypot(x2 - x1, y2 - y1)
-      const arcElevation = Math.max(60, Math.min(150, dist * 0.35))
-      const midY = Math.min(y1, y2) - arcElevation
-
-      const pathD = `M ${x1} ${y1} Q ${midX} ${midY} ${x2} ${y2}`
-
-      const services = ['simple-pwn', 'simple-web', 'simple-crypto']
-      const service = services[Math.floor(Math.random() * services.length)]
-      const colors = ['#20c997', '#ff6b6b', '#ff922b', '#339af0', '#fab005']
-      const color = colors[Math.floor(Math.random() * colors.length)]
-
-      const isFlagCapture = Math.random() > 0.35
-      const text = isFlagCapture
-        ? `${attacker.name} → ${victim.name} (Flag captured!)`
-        : `${attacker.name} → ${victim.name}`
-
-      const attack: AttackEvent = {
-        id: Math.random().toString(),
-        time: new Date().toLocaleTimeString('id-ID', { hour12: false }).replace(/:/g, '.'),
-        service,
-        attacker,
-        victim,
-        pathD,
-        color,
-      }
-
-      setActiveAttacker(attacker)
-      setNukeDetonation(victim)
-
-      setActiveAttacks((prev) => [...prev.slice(-3), attack])
-      setActivityLogs((prev) => [
-        {
-          time: attack.time,
-          service: attack.service,
-          text,
-          isNuke: isFlagCapture,
-        },
-        ...prev.slice(0, 20),
-      ])
-
-      // Clear detonation effect after 2s
-      setTimeout(() => {
-        setNukeDetonation(null)
-      }, 2000)
-    }, 2800)
-
+    fetchState()
+    const interval = setInterval(fetchState, 1500)
     return () => clearInterval(interval)
   }, [])
+
+  // Flag Submission Handler
+  const handleFlagSubmit = async () => {
+    if (!flagInput.trim()) return
+    setIsSubmitting(true)
+    setSubmitStatus(null)
+
+    try {
+      const res = await fetch('/api/ad/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          flag: flagInput.trim(),
+          teamId: parseInt(submitterTeamId),
+        }),
+      })
+      const result = await res.json()
+      if (result.accepted) {
+        setSubmitStatus({ success: true, msg: result.message || 'Flag accepted! +100 Attack Points' })
+        setFlagInput('')
+      } else {
+        setSubmitStatus({ success: false, msg: result.message || 'Flag rejected' })
+      }
+    } catch (e: any) {
+      setSubmitStatus({ success: false, msg: e.message || 'Submission error' })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   const formatCountdown = (secs: number) => {
     const m = Math.floor(secs / 60)
@@ -526,6 +563,30 @@ export const AttackMap: FC = () => {
               </Text>
             </Stack>
 
+            {/* Divider */}
+            <Box w="1px" h={26} bg="#1a2725" />
+
+            {/* SUBMIT FLAG BUTTON */}
+            <Button
+              size="xs"
+              variant="filled"
+              leftSection={<Icon path={mdiFlag} size={0.7} />}
+              onClick={() => setSubmitModalOpen(true)}
+              style={{
+                backgroundColor: 'rgba(32, 201, 151, 0.15)',
+                border: '1px solid #20c997',
+                color: '#20c997',
+                fontFamily: 'monospace',
+                fontWeight: 700,
+                fontSize: '11px',
+                letterSpacing: '0.06em',
+                height: '30px',
+                padding: '0 10px',
+              }}
+            >
+              SUBMIT FLAG
+            </Button>
+
             {/* Fullscreen Button */}
             <ActionIcon
               variant="default"
@@ -649,7 +710,7 @@ export const AttackMap: FC = () => {
             <circle cx="512" cy="285" r="380" fill="none" stroke="rgba(32, 201, 151, 0.05)" strokeWidth="1" />
 
             {/* RENDER NUCLEAR SHOCKWAVES & TARGET CROSSHAIRS */}
-            {FINALIST_TEAMS.map((team) => {
+            {teams.map((team) => {
               const cx = team.x * 10.24
               const cy = team.y * 5.71
               const isDetonating = nukeDetonation?.id === team.id
@@ -742,7 +803,7 @@ export const AttackMap: FC = () => {
           </svg>
 
           {/* HTML TEAM FORTRESS NODES OVERLAY (Avatars & Interaction) */}
-          {FINALIST_TEAMS.map((team) => {
+          {teams.map((team) => {
             const isAttacking = activeAttacker?.id === team.id
             const isDetonating = nukeDetonation?.id === team.id
             const isSelected = selectedTeam.id === team.id
@@ -906,7 +967,8 @@ export const AttackMap: FC = () => {
 
           {/* List of top 10 teams - stretches vertically to fill the entire sidebar height */}
           <Box style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            {FINALIST_TEAMS.map((t) => {
+            {[...teams].sort((a, b) => b.score - a.score).map((t, idx) => {
+              const rankNum = idx + 1
               const isSelected = selectedTeam.id === t.id
               return (
                 <Group
@@ -929,10 +991,10 @@ export const AttackMap: FC = () => {
                       size="sm"
                       ff="monospace"
                       fw={800}
-                      c={t.rank === 1 ? '#fab005' : '#839290'}
+                      c={rankNum === 1 ? '#fab005' : '#839290'}
                       style={{ width: '26px' }}
                     >
-                      {t.rank < 10 ? `0${t.rank}` : t.rank}
+                      {rankNum < 10 ? `0${rankNum}` : rankNum}
                     </Text>
                     <Box
                       w={42}
@@ -1096,6 +1158,103 @@ export const AttackMap: FC = () => {
           ))}
         </Box>
       </Box>
+
+      {/* WARFARE TERMINAL: SUBMIT FLAG MODAL */}
+      <Modal
+        opened={submitModalOpen}
+        onClose={() => {
+          setSubmitModalOpen(false)
+          setSubmitStatus(null)
+        }}
+        title={
+          <Group gap="xs">
+            <Icon path={mdiNuke} size={1} color="#20c997" />
+            <Text ff="monospace" fw={800} size="sm" c="#20c997">
+              WARFARE TERMINAL · SUBMIT ENEMY FLAG
+            </Text>
+          </Group>
+        }
+        centered
+        styles={{
+          content: {
+            backgroundColor: '#0a1413',
+            border: '1px solid #20c997',
+            boxShadow: '0 0 30px rgba(32, 201, 151, 0.25)',
+            color: '#e2e8f0',
+          },
+          header: {
+            backgroundColor: '#0a1413',
+            borderBottom: '1px solid #162c26',
+          },
+        }}
+      >
+        <Stack gap="md">
+          <Select
+            label="Submitting Team (Attacker)"
+            data={teams.map((t) => ({
+              value: t.id.toString(),
+              label: `${t.name} (${t.school})`,
+            }))}
+            value={submitterTeamId}
+            onChange={(val) => setSubmitterTeamId(val || '7')}
+            styles={{
+              input: {
+                backgroundColor: '#050c0b',
+                borderColor: '#19332c',
+                color: '#ffffff',
+                fontFamily: 'monospace',
+              },
+            }}
+          />
+          <TextInput
+            label="Stolen Flag"
+            placeholder="flag{ionic26_...}"
+            value={flagInput}
+            onChange={(e) => setFlagInput(e.currentTarget.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleFlagSubmit()
+            }}
+            styles={{
+              input: {
+                backgroundColor: '#050c0b',
+                borderColor: '#19332c',
+                color: '#20c997',
+                fontFamily: 'monospace',
+                fontWeight: 700,
+              },
+            }}
+          />
+          {submitStatus && (
+            <Alert
+              color={submitStatus.success ? 'teal' : 'red'}
+              title={submitStatus.success ? 'FLAG ACCEPTED (+100 PTS)' : 'FLAG REJECTED'}
+              styles={{
+                root: {
+                  backgroundColor: submitStatus.success ? '#0b261f' : '#2b1115',
+                  borderColor: submitStatus.success ? '#20c997' : '#ff6b6b',
+                },
+              }}
+            >
+              {submitStatus.msg}
+            </Alert>
+          )}
+          <Button
+            fullWidth
+            color="teal"
+            loading={isSubmitting}
+            onClick={handleFlagSubmit}
+            style={{
+              backgroundColor: '#20c997',
+              color: '#060c0f',
+              fontWeight: 800,
+              fontFamily: 'monospace',
+              letterSpacing: '0.05em',
+            }}
+          >
+            FIRE ICBM STRIKE (SUBMIT)
+          </Button>
+        </Stack>
+      </Modal>
     </Box>
   )
 }
