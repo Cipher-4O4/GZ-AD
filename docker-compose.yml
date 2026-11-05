@@ -1,0 +1,91 @@
+services:
+  # ==========================================
+  # Frontend Web UI (Nginx + React SPA)
+  # ==========================================
+  web:
+    build:
+      context: ./src/GZCTF/ClientApp
+      dockerfile: Dockerfile
+    container_name: gz-ad-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "3000:80"
+    depends_on:
+      - api
+    networks:
+      - gz-network
+
+  # ==========================================
+  # Backend API & Scoreboard Mock Server (Bun)
+  # ==========================================
+  api:
+    build:
+      context: ./src/GZCTF/ClientApp
+      dockerfile: Dockerfile.api
+    container_name: gz-ad-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    networks:
+      - gz-network
+
+  # ==========================================
+  # Challenge 1: Cryptography (Playground)
+  # ==========================================
+  chall-crypto:
+    build:
+      context: ./challenges/Cryptography/playground/src
+      dockerfile: Dockerfile
+    container_name: chall-crypto-playground
+    restart: unless-stopped
+    ports:
+      - "6969:6969"
+    networks:
+      - gz-network
+
+  # ==========================================
+  # Challenge 2: Binary Exploitation ((C)PPPP!)
+  # ==========================================
+  chall-pwn:
+    build:
+      context: ./challenges/Binary Exploitation/(C)PPPP!/source
+      dockerfile: Dockerfile
+    container_name: chall-pwn-cpppp
+    restart: unless-stopped
+    ports:
+      - "7070:7070"
+    networks:
+      - gz-network
+
+  # ==========================================
+  # Challenge 3: Web Exploitation (Classic API)
+  # ==========================================
+  chall-classic-api:
+    build:
+      context: ./challenges/Web Exploitation/classic-api/source
+      dockerfile: Dockerfile
+    container_name: chall-web-classic-api
+    restart: unless-stopped
+    ports:
+      - "1337:1337"
+    networks:
+      - gz-network
+
+  # ==========================================
+  # Challenge 4: Web Exploitation (Coloring)
+  # ==========================================
+  chall-coloring:
+    build:
+      context: ./challenges/Web Exploitation/coloring/src
+      dockerfile: Dockerfile
+    container_name: chall-web-coloring
+    restart: unless-stopped
+    ports:
+      - "8082:8080"
+    networks:
+      - gz-network
+
+networks:
+  gz-network:
+    driver: bridge
