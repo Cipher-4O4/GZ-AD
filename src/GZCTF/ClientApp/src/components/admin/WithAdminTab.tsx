@@ -6,6 +6,7 @@ import {
   mdiFlagOutline,
   mdiPackageVariantClosed,
   mdiSitemapOutline,
+  mdiSwordCross,
 } from '@mdi/js'
 import { Icon } from '@mdi/react'
 import React, { FC, useEffect, useState } from 'react'

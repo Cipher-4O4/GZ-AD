@@ -799,11 +799,27 @@ Bun.serve({
       )
     }
 
+    if (path.includes('/account/login') || path === '/api/account/login') {
+      return Response.json(
+        {
+          id: 'admin_1',
+          userName: 'Admin',
+          role: 'Admin',
+          token: 'jwt_admin_ionic2026',
+        },
+        { headers }
+      )
+    }
+
+    if (path.includes('/account/logout')) {
+      return Response.json({ success: true }, { headers })
+    }
+
     if (path === '/api/account/profile') {
       return Response.json(
         {
-          id: 'user_z3roday',
-          userName: 'rootkids',
+          id: 'admin_1',
+          userName: 'Admin',
           role: 'Admin',
           team: {
             id: 7,

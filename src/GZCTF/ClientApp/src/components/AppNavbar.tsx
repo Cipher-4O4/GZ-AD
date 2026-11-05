@@ -20,6 +20,7 @@ import {
   mdiLogout,
   mdiNoteTextOutline,
   mdiPalette,
+  mdiSwordCross,
   mdiTranslate,
   mdiWeatherNight,
   mdiWeatherSunny,
