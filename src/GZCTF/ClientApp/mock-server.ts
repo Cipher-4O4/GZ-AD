@@ -302,6 +302,37 @@ let state: GameState = {
   ],
 }
 
+let singleGame: any = {
+  id: 5,
+  title: 'Final Cybersecurity IONIC 2026',
+  summary: 'Babak Final Attack & Defense IONIC 2026',
+  content: '10 Tim Finalis Bertanding dalam Mode Attack & Defense Realtime.',
+  poster: null,
+  start: Date.now() - 3600000,
+  end: Date.now() + 6 * 3600000,
+  status: 'Accepted',
+  practiceMode: true,
+  challengesCount: 4,
+  divisions: [],
+}
+
+let adminGameInfo: any = {
+  id: 5,
+  title: 'Final Cybersecurity IONIC 2026',
+  summary: 'Babak Final Attack & Defense IONIC 2026',
+  content: '10 Tim Finalis Bertanding dalam Mode Attack & Defense Realtime.',
+  poster: null,
+  start: Date.now() - 3600000,
+  end: Date.now() + 6 * 3600000,
+  hidden: false,
+  practiceMode: true,
+  acceptWithoutReview: true,
+  writeupRequired: false,
+  teamCount: 10,
+  challengeCount: 4,
+  submissionCount: 142,
+}
+
 // Load existing state if available
 if (existsSync(STATE_FILE)) {
   try {
@@ -309,6 +340,10 @@ if (existsSync(STATE_FILE)) {
     const loaded = JSON.parse(raw)
     if (loaded && loaded.teams && loaded.round) {
       state = { ...state, ...loaded }
+      if (loaded.poster) {
+        adminGameInfo.poster = loaded.poster
+        singleGame.poster = loaded.poster
+      }
       console.log(`[A&D Engine] Successfully restored competition state (Round ${state.round}, Tick ${state.tick})`)
     }
   } catch (err) {
@@ -318,7 +353,8 @@ if (existsSync(STATE_FILE)) {
 
 function saveState() {
   try {
-    writeFileSync(STATE_FILE, JSON.stringify(state, null, 2), 'utf-8')
+    const toSave = { ...state, poster: adminGameInfo.poster }
+    writeFileSync(STATE_FILE, JSON.stringify(toSave, null, 2), 'utf-8')
   } catch (err) {
     console.error('[A&D Engine] Error saving state:', err)
   }
@@ -912,33 +948,70 @@ Bun.serve({
       )
     }
 
-    const singleGame = {
-      id: 5,
-      title: 'Final Cybersecurity IONIC 2026',
-      summary: 'Babak Final Attack & Defense IONIC 2026',
-      content: '10 Tim Finalis Bertanding dalam Mode Attack & Defense Realtime.',
-      start: Date.now() - 3600000,
-      end: Date.now() + 6 * 3600000,
-      status: 'Accepted',
-      practiceMode: true,
-      challengesCount: 4,
-      divisions: [],
+    // Admin Game Poster Upload
+    if (req.method === 'PUT' && path.match(/\/api\/edit\/games\/\d+\/poster/)) {
+      try {
+        const formData = await req.formData()
+        const file = formData.get('file') as File | null
+        if (file) {
+          const buffer = Buffer.from(await file.arrayBuffer())
+          const base64 = buffer.toString('base64')
+          const mime = file.type || 'image/png'
+          const dataUrl = `data:${mime};base64,${base64}`
+          adminGameInfo.poster = dataUrl
+          singleGame.poster = dataUrl
+          saveState()
+          return Response.json(dataUrl, { headers })
+        }
+      } catch (err) {
+        console.error('Error handling poster upload:', err)
+      }
+      return Response.json(adminGameInfo.poster || '', { headers })
     }
 
-    const adminGameInfo = {
-      id: 5,
-      title: 'Final Cybersecurity IONIC 2026',
-      summary: 'Babak Final Attack & Defense IONIC 2026',
-      content: '10 Tim Finalis Bertanding dalam Mode Attack & Defense Realtime.',
-      start: Date.now() - 3600000,
-      end: Date.now() + 6 * 3600000,
-      hidden: false,
-      practiceMode: true,
-      acceptWithoutReview: true,
-      writeupRequired: false,
-      teamCount: 10,
-      challengeCount: 4,
-      submissionCount: 142,
+    // Admin Game Poster Delete
+    if (req.method === 'DELETE' && path.match(/\/api\/edit\/games\/\d+\/poster/)) {
+      adminGameInfo.poster = null
+      singleGame.poster = null
+      saveState()
+      return Response.json(null, { headers })
+    }
+
+    // Admin Update Game Info
+    if (req.method === 'PUT' && path.match(/\/api\/edit\/games\/\d+$/)) {
+      try {
+        const body = await req.json()
+        Object.assign(adminGameInfo, body)
+        Object.assign(singleGame, body)
+        saveState()
+      } catch {}
+      return Response.json(adminGameInfo, { headers })
+    }
+
+    // Admin A&D Engine Control
+    if (path === '/api/ad/admin/control' && req.method === 'POST') {
+      try {
+        const body = await req.json()
+        if (body.action === 'pause') {
+          state.isPaused = true
+          saveState()
+          return Response.json({ ok: true, isPaused: true }, { headers })
+        } else if (body.action === 'resume') {
+          state.isPaused = false
+          saveState()
+          return Response.json({ ok: true, isPaused: false }, { headers })
+        } else if (body.action === 'next_tick') {
+          advanceTick()
+          return Response.json({ ok: true, round: state.round, tick: state.tick }, { headers })
+        } else if (body.action === 'reset_round') {
+          state.tick = 1
+          state.lastTickTimestamp = Date.now()
+          saveState()
+          return Response.json({ ok: true, round: state.round, tick: state.tick }, { headers })
+        }
+      } catch (e) {
+        return Response.json({ ok: false, error: String(e) }, { status: 400, headers })
+      }
     }
 
     // Admin & Edit Endpoints

@@ -5,6 +5,7 @@ import {
   mdiFileDocumentCheckOutline,
   mdiFlagOutline,
   mdiKeyboardBackspace,
+  mdiShieldOutline,
   mdiTagOutline,
   mdiTextBoxOutline,
 } from '@mdi/js'
@@ -39,6 +40,7 @@ export const WithGameEditTab: FC<GameEditTabProps> = ({
 
   const pages = [
     { icon: mdiTextBoxOutline, title: t('admin.tab.games.info'), path: 'info' },
+    { icon: mdiShieldOutline, title: 'Attack & Defense', path: 'ad' },
     { icon: mdiBullhornOutline, title: t('admin.tab.games.notices'), path: 'notices' },
     { icon: mdiFlagOutline, title: t('admin.tab.games.challenges'), path: 'challenges' },
     { icon: mdiTagOutline, title: t('admin.tab.games.divisions'), path: 'divisions' },
