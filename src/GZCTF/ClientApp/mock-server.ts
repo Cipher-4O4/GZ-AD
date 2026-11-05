@@ -505,6 +505,7 @@ const MIME_TYPES: Record<string, string> = {
 // Main HTTP Server
 Bun.serve({
   port,
+  idleTimeout: 60,
   async fetch(req) {
     const url = new URL(req.url)
     const originalPath = url.pathname
