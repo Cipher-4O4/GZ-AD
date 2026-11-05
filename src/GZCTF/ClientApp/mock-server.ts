@@ -252,55 +252,73 @@ interface GameState {
   tickSeconds: number
   totalTickCount: number
   lastTickTimestamp: number
-  isPaused?: boolean
+  isPaused: boolean
   teams: AdTeamData[]
   flags: Record<string, ActiveFlag>
   attacks: AttackLog[]
 }
 
+const INITIAL_BROKEN_STATUS: Record<number, Record<string, 'UP' | 'FAULT' | 'DOWN'>> = {
+  1: { 'simple-crypto': 'FAULT', 'simple-pwn': 'UP', 'simple-web': 'UP', coloring: 'DOWN' },
+  2: { 'simple-crypto': 'UP', 'simple-pwn': 'FAULT', 'simple-web': 'DOWN', coloring: 'UP' },
+  3: { 'simple-crypto': 'DOWN', 'simple-pwn': 'UP', 'simple-web': 'FAULT', coloring: 'UP' },
+  4: { 'simple-crypto': 'UP', 'simple-pwn': 'DOWN', 'simple-web': 'UP', coloring: 'FAULT' },
+  5: { 'simple-crypto': 'FAULT', 'simple-pwn': 'UP', 'simple-web': 'DOWN', coloring: 'UP' },
+  6: { 'simple-crypto': 'DOWN', 'simple-pwn': 'FAULT', 'simple-web': 'UP', coloring: 'UP' },
+  7: { 'simple-crypto': 'UP', 'simple-pwn': 'DOWN', 'simple-web': 'FAULT', coloring: 'UP' }, // Z3RODAY
+  8: { 'simple-crypto': 'FAULT', 'simple-pwn': 'UP', 'simple-web': 'UP', coloring: 'DOWN' },
+  9: { 'simple-crypto': 'UP', 'simple-pwn': 'FAULT', 'simple-web': 'DOWN', coloring: 'UP' },
+  10: { 'simple-crypto': 'DOWN', 'simple-pwn': 'UP', 'simple-web': 'FAULT', coloring: 'UP' },
+}
+
 let state: GameState = {
-  round: 19,
-  tick: 2,
+  round: 0,
+  tick: 0,
   maxTick: 5,
   tickSeconds: 60,
-  totalTickCount: 92,
+  totalTickCount: 0,
   lastTickTimestamp: Date.now(),
-  isPaused: false,
+  isPaused: true,
   teams: JSON.parse(JSON.stringify(INITIAL_TEAMS)),
   flags: {},
-  attacks: [
-    {
-      id: 'atk_init_1',
-      time: '15.53.45',
-      attackerId: 7, // Z3RODAY
-      victimId: 5,   // WilSec - BOEDOET 47
-      service: 'simple-pwn',
-      text: 'Z3RODAY → WilSec - BOEDOET 47 (Flag captured!)',
-      isNuke: true,
-      color: '#fab005',
-    },
-    {
-      id: 'atk_init_2',
-      time: '15.53.45',
-      attackerId: 1,
-      victimId: 4,
-      service: 'simple-crypto',
-      text: 'United Shell-SCC → Maaf TKA Pilih CTF (Flag captured!)',
-      isNuke: true,
-      color: '#fab005',
-    },
-    {
-      id: 'atk_init_3',
-      time: '15.53.44',
-      attackerId: 2,
-      victimId: 3,
-      service: 'simple-web',
-      text: 'rootsanctum → WilSec - Apa aja (Flag captured!)',
-      isNuke: true,
-      color: '#20c997',
-    },
-  ],
+  attacks: [],
 }
+
+function resetToStandbyState(corruptServices = true) {
+  state.round = 0
+  state.tick = 0
+  state.totalTickCount = 0
+  state.isPaused = true
+  state.lastTickTimestamp = Date.now()
+  state.flags = {}
+  state.attacks = []
+
+  for (const team of state.teams) {
+    team.score = 0.0
+    team.captures = 0
+    const brokenMap = corruptServices ? INITIAL_BROKEN_STATUS[team.id] : null
+
+    let hasFault = false
+    let hasDown = false
+    for (const svc of SERVICES) {
+      const initStatus = brokenMap ? brokenMap[svc.key] : 'UP'
+      if (initStatus === 'FAULT') hasFault = true
+      if (initStatus === 'DOWN') hasDown = true
+      team.services[svc.key] = {
+        attack: 0,
+        defense: 0,
+        availability: 0,
+        status: initStatus,
+      } as any
+    }
+    team.status = hasDown ? 'Offline' : hasFault ? 'Mumble' : 'Operational'
+  }
+  sortTeams()
+  saveState()
+}
+
+// Initialize with zero scores and initial broken state
+resetToStandbyState(true)
 
 let singleGame: any = {
   id: 5,
@@ -398,35 +416,41 @@ function generateFlagsForTick(tickNum: number) {
   }
 }
 
-// Ensure initial flags exist
-if (Object.keys(state.flags).length === 0) {
+// Ensure initial flags exist if game has started
+if (state.round > 0 && Object.keys(state.flags).length === 0) {
   generateFlagsForTick(state.totalTickCount)
 }
 
 // Tick progression logic
 function advanceTick() {
-  state.totalTickCount += 1
-  state.lastTickTimestamp = Date.now()
-
-  state.tick += 1
-  if (state.tick > state.maxTick) {
+  if (state.round === 0) {
+    state.round = 1
     state.tick = 1
-    state.round += 1
+    state.totalTickCount = 1
+  } else {
+    state.totalTickCount += 1
+    state.tick += 1
+    if (state.tick > state.maxTick) {
+      state.tick = 1
+      state.round += 1
+    }
   }
+  state.lastTickTimestamp = Date.now()
 
   console.log(`[A&D Tick Engine] ▶ Advancing to Round ${state.round} · Tick ${state.tick}/${state.maxTick} (Global Tick #${state.totalTickCount})`)
 
   // 1. Generate new round flags for all teams
   generateFlagsForTick(state.totalTickCount)
 
-  // 2. Award Availability SLA points to operational teams (+10 each)
+  // 2. Award Availability SLA points to teams whose services are UP (+10 each)
   for (const team of state.teams) {
-    if (team.status === 'Operational') {
-      team.score += 40 // 10 per service
-      for (const svc of SERVICES) {
-        if (!team.services[svc.key]) {
-          team.services[svc.key] = { attack: 0, defense: 0, availability: 0 }
-        }
+    for (const svc of SERVICES) {
+      if (!team.services[svc.key]) {
+        team.services[svc.key] = { attack: 0, defense: 0, availability: 0, status: 'UP' } as any
+      }
+      const s = (team.services[svc.key] as any).status || 'UP'
+      if (s === 'UP') {
+        team.score += 10
         team.services[svc.key].availability += 10
       }
     }
@@ -447,7 +471,7 @@ function sortTeams() {
 
 // Tick Timer loop running every 1000ms
 setInterval(() => {
-  if (state.isPaused) return
+  if (state.isPaused || state.round === 0) return
   const elapsed = Math.floor((Date.now() - state.lastTickTimestamp) / 1000)
   if (elapsed >= state.tickSeconds) {
     advanceTick()
@@ -992,22 +1016,60 @@ Bun.serve({
     if (path === '/api/ad/admin/control' && req.method === 'POST') {
       try {
         const body = await req.json()
-        if (body.action === 'pause') {
+        if (body.action === 'start') {
+          state.round = 1
+          state.tick = 1
+          state.totalTickCount = 1
+          state.isPaused = false
+          state.lastTickTimestamp = Date.now()
+          generateFlagsForTick(1)
+          saveState()
+          return Response.json({ ok: true, round: 1, tick: 1, isPaused: false }, { headers })
+        } else if (body.action === 'pause') {
           state.isPaused = true
           saveState()
           return Response.json({ ok: true, isPaused: true }, { headers })
         } else if (body.action === 'resume') {
           state.isPaused = false
+          state.lastTickTimestamp = Date.now()
           saveState()
           return Response.json({ ok: true, isPaused: false }, { headers })
         } else if (body.action === 'next_tick') {
           advanceTick()
           return Response.json({ ok: true, round: state.round, tick: state.tick }, { headers })
-        } else if (body.action === 'reset_round') {
-          state.tick = 1
-          state.lastTickTimestamp = Date.now()
+        } else if (body.action === 'reset_zero') {
+          resetToStandbyState(true)
+          return Response.json({ ok: true, round: 0, tick: 0, isPaused: true }, { headers })
+        } else if (body.action === 'sabotage') {
+          resetToStandbyState(true)
+          return Response.json({ ok: true, message: 'Layanan awal telah disabotase (Mumble & Offline)' }, { headers })
+        } else if (body.action === 'repair_all') {
+          for (const team of state.teams) {
+            for (const svc of SERVICES) {
+              if (team.services[svc.key]) {
+                ;(team.services[svc.key] as any).status = 'UP'
+              }
+            }
+            team.status = 'Operational'
+          }
           saveState()
-          return Response.json({ ok: true, round: state.round, tick: state.tick }, { headers })
+          return Response.json({ ok: true, message: 'Semua layanan tim berhasil dipulihkan (UP)' }, { headers })
+        } else if (body.action === 'set_status') {
+          const { teamId, serviceKey, status } = body
+          const targetTeam = state.teams.find((t) => t.id === teamId)
+          if (targetTeam && targetTeam.services[serviceKey]) {
+            ;(targetTeam.services[serviceKey] as any).status = status
+            const statuses = SERVICES.map((s) => (targetTeam.services[s.key] as any)?.status || 'UP')
+            if (statuses.includes('DOWN')) {
+              targetTeam.status = 'Offline'
+            } else if (statuses.includes('FAULT')) {
+              targetTeam.status = 'Mumble'
+            } else {
+              targetTeam.status = 'Operational'
+            }
+            saveState()
+          }
+          return Response.json({ ok: true, teamId, serviceKey, status }, { headers })
         }
       } catch (e) {
         return Response.json({ ok: false, error: String(e) }, { status: 400, headers })

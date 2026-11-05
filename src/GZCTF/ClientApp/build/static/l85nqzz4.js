@@ -1,9 +1,0 @@
-/* The GZ::CTF Project @unknown
- * 
- * License   : GNU Affero General Public License v3.0 (Core)
- * License   : LicenseRef-GZCTF-Restricted (Restricted components)
- * Commit    : Unofficial build version
- * Build     : 2026-11-05T08:27:05.203Z
- * Copyright (C) 2022-2026 GZTimeWalker. All Rights Reserved.
- */
-import{i as e,n as t,nt as n,q as r,y as i}from"./lz9snzk0.js";import{V as a,ft as o,y as s,z as c}from"./n1rbp2ru.js";import{s as l}from"./lpohnctw.js";import{s as u,t as d}from"./kt4wsxy8.js";import{Cn as f,Qt as p,a as m,dt as h,it as g,r as _,t as v}from"./o0ym0hk7.js";import{t as y}from"./peexjy2g.js";import{n as b}from"./llet7zeg.js";import{t as x}from"./i3wpv11i.js";var S=v(),C=n(r(),1),w=i(),T=({head:n,headProps:r,isLoading:i,children:s})=>{let d=a(),v=c(),{t:b}=o(),T=[{icon:h,title:b(`admin.tab.games.index`),path:`games`},{icon:m,title:b(`admin.tab.teams`),path:`teams`},{icon:_,title:b(`admin.tab.users`),path:`users`},{icon:p,title:b(`admin.tab.instances`),path:`instances`},{icon:g,title:b(`admin.tab.logs`),path:`logs`},{icon:f,title:b(`admin.tab.settings`),path:`settings`}],E=e=>T.findIndex(t=>e.startsWith(`/admin/${t.path}`)),D=E(v.pathname),[O,k]=(0,C.useState)(D<0?0:D);return(0,C.useEffect)(()=>{let e=E(v.pathname);e>=0?k(e):d(T[0].path)},[v]),y(T[D].title),(0,w.jsxs)(t,{gap:`xs`,align:`center`,pt:`md`,children:[(0,w.jsx)(x,{withIcon:!0,active:O,onTabChange:(e,t)=>{k(e),d(`/admin/${t}`)},tabs:T.map(e=>({tabKey:e.path,label:e.title,icon:(0,w.jsx)(S.Icon,{path:e.icon,size:1})}))}),n&&(0,w.jsx)(e,{wrap:`nowrap`,justify:`space-between`,h:`40px`,w:`100%`,...r,children:n}),s,(0,w.jsx)(u,{visible:i??!1,overlayProps:l})]})},E=e=>(0,w.jsx)(d,{width:`90%`,minWidth:1080,children:(0,w.jsx)(b,{requiredRole:s.Admin,children:(0,w.jsx)(T,{...e})})});export{E as t};

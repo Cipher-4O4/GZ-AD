@@ -1,5 +1,6 @@
 import {
   ActionIcon,
+  Alert,
   Badge,
   Button,
   Card,
@@ -34,16 +35,19 @@ import {
   mdiContentCopy,
   mdiContentSaveOutline,
   mdiFastForward,
+  mdiInformationOutline,
   mdiKeyOutline,
   mdiPause,
   mdiPlay,
   mdiRefresh,
+  mdiRestart,
   mdiServerNetworkOutline,
   mdiShieldAlertOutline,
   mdiShieldCheckOutline,
   mdiShieldOutline,
   mdiSwordCross,
   mdiTune,
+  mdiWrenchOutline,
 } from '@mdi/js'
 import { Icon } from '@mdi/react'
 import dayjs from 'dayjs'
@@ -51,11 +55,6 @@ import { FC, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
 import { WithGameEditTab } from '@Components/admin/WithGameEditTab'
-
-interface ServiceHealth {
-  status: 'UP' | 'DOWN' | 'FAULT'
-  uptime: number
-}
 
 interface TeamADData {
   id: number
@@ -66,7 +65,7 @@ interface TeamADData {
   score: number
   captures: number
   status: 'Operational' | 'Recovering' | 'Mumble' | 'Offline'
-  services: Record<string, { attack: number; defense: number; availability: number }>
+  services: Record<string, { attack: number; defense: number; availability: number; status?: 'UP' | 'FAULT' | 'DOWN' }>
 }
 
 interface AttackLogItem {
@@ -105,12 +104,12 @@ const AdAdminPage: FC = () => {
 
   const [loading, setLoading] = useState(false)
   const [engine, setEngine] = useState<EngineState>({
-    round: 19,
-    tick: 2,
+    round: 0,
+    tick: 0,
     maxTick: 5,
     tickSeconds: 60,
-    totalTickCount: 92,
-    isPaused: false,
+    totalTickCount: 0,
+    isPaused: true,
     lastTickTimestamp: Date.now(),
   })
   const [teams, setTeams] = useState<TeamADData[]>([])
@@ -142,8 +141,8 @@ const AdAdminPage: FC = () => {
             tick: data.tick,
             maxTick: data.maxTick ?? 5,
             tickSeconds: data.tickSeconds ?? 60,
-            totalTickCount: data.totalTickCount ?? 92,
-            isPaused: data.isPaused ?? false,
+            totalTickCount: data.totalTickCount ?? 0,
+            isPaused: data.isPaused ?? true,
             lastTickTimestamp: data.lastTickTimestamp ?? Date.now(),
           })
         }
@@ -176,6 +175,10 @@ const AdAdminPage: FC = () => {
   }, [])
 
   useEffect(() => {
+    if (engine.isPaused || engine.round === 0) {
+      setSecondsLeft(engine.tickSeconds)
+      return
+    }
     const countdown = setInterval(() => {
       const elapsed = Math.floor((Date.now() - engine.lastTickTimestamp) / 1000)
       const remaining = Math.max(0, engine.tickSeconds - (elapsed % engine.tickSeconds))
@@ -184,19 +187,25 @@ const AdAdminPage: FC = () => {
     return () => clearInterval(countdown)
   }, [engine])
 
-  const handleControl = async (action: 'pause' | 'resume' | 'next_tick' | 'reset_round') => {
+  const handleControl = async (action: string, payload?: any) => {
     setLoading(true)
     try {
       const res = await fetch('/api/ad/admin/control', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ action, ...payload }),
       })
       if (res.ok) {
+        let msg = `Aksi berhasil dieksekusi: ${action}`
+        if (action === 'start') msg = 'Kompetisi resmi dimulai! Ronde 1 · Tick 1 aktif.'
+        if (action === 'reset_zero') msg = 'Seluruh data direset ke 0 (Pre-Game Standby).'
+        if (action === 'sabotage') msg = 'Layanan awal telah disabotase (Mumble & Offline). Siap untuk fase perbaikan.'
+        if (action === 'repair_all') msg = 'Semua layanan tim berhasil dipulihkan (100% UP).'
+
         showNotification({
           color: 'teal',
           title: 'Berhasil',
-          message: `Engine berhasil mengeksekusi: ${action}`,
+          message: msg,
           icon: <Icon path={mdiCheck} size={1} />,
         })
         await fetchState()
@@ -211,6 +220,11 @@ const AdAdminPage: FC = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleToggleServiceStatus = async (teamId: number, serviceKey: string, currentStatus: string) => {
+    const nextStatus = currentStatus === 'UP' ? 'FAULT' : currentStatus === 'FAULT' ? 'DOWN' : 'UP'
+    await handleControl('set_status', { teamId, serviceKey, status: nextStatus })
   }
 
   const handleSaveRules = () => {
@@ -245,7 +259,7 @@ const AdAdminPage: FC = () => {
       })
       setLoading(false)
       fetchState()
-    }, 1500)
+    }, 1200)
   }
 
   const handleTestSubmit = async () => {
@@ -277,66 +291,129 @@ const AdAdminPage: FC = () => {
     }
   }
 
-  const getServiceStatus = (team: TeamADData, svcKey: string) => {
-    const isOffline = team.status === 'Offline'
-    if (isOffline) return 'DOWN'
-    const seed = (team.id * 17 + svcKey.length + engine.totalTickCount) % 10
-    if (seed === 0) return 'FAULT'
-    if (seed === 1 && team.id > 7) return 'DOWN'
-    return 'UP'
+  const getServiceStatus = (team: TeamADData, svcKey: string): 'UP' | 'FAULT' | 'DOWN' => {
+    const s = team.services?.[svcKey]?.status
+    if (s) return s
+    return team.status === 'Offline' ? 'DOWN' : team.status === 'Mumble' ? 'FAULT' : 'UP'
   }
+
+  const isPreGame = engine.round === 0
 
   return (
     <WithGameEditTab
       head={
         <Group justify="space-between" w="100%" wrap="wrap" gap="sm">
           <Group gap="xs">
-            <Badge size="lg" variant="filled" color={engine.isPaused ? 'orange' : 'teal'}>
-              {engine.isPaused ? 'ENGINE PAUSED' : 'ENGINE ACTIVE'}
+            <Badge size="lg" variant="filled" color={isPreGame ? 'gray' : engine.isPaused ? 'orange' : 'teal'}>
+              {isPreGame ? 'PRE-GAME (STANDBY)' : engine.isPaused ? 'ENGINE PAUSED' : 'ENGINE ACTIVE'}
             </Badge>
-            <Badge size="lg" variant="outline" color="cyan">
-              Ronde {engine.round} · Tick {engine.tick}/{engine.maxTick} (Global #{engine.totalTickCount})
+            <Badge size="lg" variant="outline" color={isPreGame ? 'gray' : 'cyan'}>
+              {isPreGame
+                ? 'Ronde 0 · Tick 0 (Global #0)'
+                : `Ronde ${engine.round} · Tick ${engine.tick}/${engine.maxTick} (Global #${engine.totalTickCount})`}
             </Badge>
-            <Badge size="lg" variant="light" color="gray">
-              Tick berikutnya: {secondsLeft}s
+            <Badge size="lg" variant="light" color={isPreGame ? 'gray' : 'blue'}>
+              {isPreGame ? 'Menunggu Dimulai' : `Tick berikutnya: ${secondsLeft}s`}
             </Badge>
           </Group>
 
           <Group gap="xs">
-            <Button
-              size="xs"
-              variant="outline"
-              color={engine.isPaused ? 'teal' : 'orange'}
-              leftSection={<Icon path={engine.isPaused ? mdiPlay : mdiPause} size={0.8} />}
-              onClick={() => handleControl(engine.isPaused ? 'resume' : 'pause')}
-              loading={loading}
-            >
-              {engine.isPaused ? 'Lanjutkan Engine' : 'Jeda Engine'}
-            </Button>
-            <Button
-              size="xs"
-              variant="filled"
-              color="indigo"
-              leftSection={<Icon path={mdiFastForward} size={0.8} />}
-              onClick={() => handleControl('next_tick')}
-              loading={loading}
-            >
-              Putar 1 Tick
-            </Button>
-            <Button
-              size="xs"
-              variant="light"
-              color="blue"
-              leftSection={<Icon path={mdiRefresh} size={0.8} />}
-              onClick={handleRunChecker}
-              loading={loading}
-            >
-              Cek SLA Ulang
-            </Button>
+            {isPreGame ? (
+              <>
+                <Button
+                  size="sm"
+                  variant="filled"
+                  color="teal"
+                  leftSection={<Icon path={mdiPlay} size={1} />}
+                  onClick={() => handleControl('start')}
+                  loading={loading}
+                >
+                  Mulai Kompetisi (Start Match)
+                </Button>
+                <Button
+                  size="xs"
+                  variant="outline"
+                  color="orange"
+                  leftSection={<Icon path={mdiAlertCircleOutline} size={0.8} />}
+                  onClick={() => handleControl('sabotage')}
+                  loading={loading}
+                >
+                  Set Rusak Awal (Mumble/Offline)
+                </Button>
+                <Button
+                  size="xs"
+                  variant="light"
+                  color="blue"
+                  leftSection={<Icon path={mdiCheckCircleOutline} size={0.8} />}
+                  onClick={() => handleControl('repair_all')}
+                  loading={loading}
+                >
+                  Semua UP
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  size="xs"
+                  variant="outline"
+                  color={engine.isPaused ? 'teal' : 'orange'}
+                  leftSection={<Icon path={engine.isPaused ? mdiPlay : mdiPause} size={0.8} />}
+                  onClick={() => handleControl(engine.isPaused ? 'resume' : 'pause')}
+                  loading={loading}
+                >
+                  {engine.isPaused ? 'Lanjutkan Engine' : 'Jeda Engine'}
+                </Button>
+                <Button
+                  size="xs"
+                  variant="filled"
+                  color="indigo"
+                  leftSection={<Icon path={mdiFastForward} size={0.8} />}
+                  onClick={() => handleControl('next_tick')}
+                  loading={loading}
+                >
+                  Putar 1 Tick
+                </Button>
+                <Button
+                  size="xs"
+                  variant="light"
+                  color="blue"
+                  leftSection={<Icon path={mdiRefresh} size={0.8} />}
+                  onClick={handleRunChecker}
+                  loading={loading}
+                >
+                  Cek SLA Ulang
+                </Button>
+                <Button
+                  size="xs"
+                  variant="subtle"
+                  color="red"
+                  leftSection={<Icon path={mdiRestart} size={0.8} />}
+                  onClick={() => handleControl('reset_zero')}
+                  loading={loading}
+                >
+                  Reset ke 0
+                </Button>
+              </>
+            )}
           </Group>
         </Group>
       }
     >
+      {isPreGame && (
+        <Alert
+          variant="light"
+          color="blue"
+          title="Fase Persiapan & Pertahanan Awal (Pre-Game)"
+          icon={<Icon path={mdiInformationOutline} size={1} />}
+          mb="md"
+        >
+          Kompetisi saat ini berada dalam status <b>Standby (Skor 0.0)</b>. Beberapa layanan awal telah disabotase menjadi{' '}
+          <b>MUMBLE</b> (fungsi rusak) dan <b>OFFLINE</b> (mati). Peserta dapat mengakses vulnbox via SSH (
+          <Code>ssh teamX@10.43.170.150 -p 222X</Code>) untuk menganalisis dan membenahi service mereka. Klik{' '}
+          <b>Mulai Kompetisi</b> di atas saat pertandingan resmi dimulai.
+        </Alert>
+      )}
+
       <Tabs defaultValue="sla" variant="outline">
         <Tabs.List mb="md">
           <Tabs.Tab value="sla" leftSection={<Icon path={mdiShieldCheckOutline} size={1} />}>
@@ -370,8 +447,8 @@ const AdAdminPage: FC = () => {
                   <Text size="xs" c="dimmed">
                     Port: <Code>{s.port}</Code>
                   </Text>
-                  <Text size="xs" c="teal" fw={500} mt={4}>
-                    Checker SLA: 100% Aktif (Tiap 60s)
+                  <Text size="xs" c={isPreGame ? 'dimmed' : 'teal'} fw={500} mt={4}>
+                    Checker SLA: {isPreGame ? 'Standby (Uji Manual)' : '100% Aktif (Tiap 60s)'}
                   </Text>
                 </Card>
               ))}
@@ -415,11 +492,20 @@ const AdAdminPage: FC = () => {
                       {SERVICES.map((svc) => {
                         const status = getServiceStatus(t, svc.key)
                         const color = status === 'UP' ? 'teal' : status === 'FAULT' ? 'yellow' : 'red'
+                        const label = status === 'FAULT' ? 'MUMBLE' : status === 'DOWN' ? 'OFFLINE' : 'UP'
                         return (
                           <Table.Td key={svc.key}>
-                            <Badge size="sm" variant="light" color={color}>
-                              {status}
-                            </Badge>
+                            <Tooltip label="Klik untuk mengubah status (UP -> MUMBLE -> OFFLINE)">
+                              <Badge
+                                size="sm"
+                                variant="light"
+                                color={color}
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => handleToggleServiceStatus(t.id, svc.key, status)}
+                              >
+                                {label}
+                              </Badge>
+                            </Tooltip>
                           </Table.Td>
                         )
                       })}
@@ -604,56 +690,62 @@ const AdAdminPage: FC = () => {
               <Paper withBorder p="md" radius="md">
                 <Group justify="space-between" mb="sm">
                   <Title order={5}>Live Attack Log (Stream Serangan)</Title>
-                  <Badge color="red" variant="light">
+                  <Badge color={attacks.length > 0 ? 'red' : 'gray'} variant="light">
                     {attacks.length} Total Serangan
                   </Badge>
                 </Group>
-                <ScrollArea h={400}>
-                  <Table striped>
-                    <Table.Thead>
-                      <Table.Tr>
-                        <Table.Th>Waktu</Table.Th>
-                        <Table.Th>Penyerang</Table.Th>
-                        <Table.Th>Target</Table.Th>
-                        <Table.Th>Service</Table.Th>
-                        <Table.Th>Status</Table.Th>
-                      </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                      {attacks.map((a) => {
-                        const atkTeam = teams.find((t) => t.id === a.attackerId)
-                        const vicTeam = teams.find((t) => t.id === a.victimId)
-                        return (
-                          <Table.Tr key={a.id}>
-                            <Table.Td>
-                              <Code>{a.time}</Code>
-                            </Table.Td>
-                            <Table.Td>
-                              <Text fw={600} size="sm" c="teal">
-                                {atkTeam ? atkTeam.name : `Tim #${a.attackerId}`}
-                              </Text>
-                            </Table.Td>
-                            <Table.Td>
-                              <Text size="sm" c="red">
-                                {vicTeam ? vicTeam.name : `Tim #${a.victimId}`}
-                              </Text>
-                            </Table.Td>
-                            <Table.Td>
-                              <Badge size="xs" color="gray">
-                                {a.service}
-                              </Badge>
-                            </Table.Td>
-                            <Table.Td>
-                              <Badge size="xs" color="orange" variant="light">
-                                Flag Captured (+100)
-                              </Badge>
-                            </Table.Td>
-                          </Table.Tr>
-                        )
-                      })}
-                    </Table.Tbody>
-                  </Table>
-                </ScrollArea>
+                {attacks.length === 0 ? (
+                  <Text size="sm" c="dimmed" p="md" ta="center">
+                    Belum ada serangan yang tercatat. Log akan muncul secara realtime saat kompetisi dimulai.
+                  </Text>
+                ) : (
+                  <ScrollArea h={400}>
+                    <Table striped>
+                      <Table.Thead>
+                        <Table.Tr>
+                          <Table.Th>Waktu</Table.Th>
+                          <Table.Th>Penyerang</Table.Th>
+                          <Table.Th>Target</Table.Th>
+                          <Table.Th>Service</Table.Th>
+                          <Table.Th>Status</Table.Th>
+                        </Table.Tr>
+                      </Table.Thead>
+                      <Table.Tbody>
+                        {attacks.map((a) => {
+                          const atkTeam = teams.find((t) => t.id === a.attackerId)
+                          const vicTeam = teams.find((t) => t.id === a.victimId)
+                          return (
+                            <Table.Tr key={a.id}>
+                              <Table.Td>
+                                <Code>{a.time}</Code>
+                              </Table.Td>
+                              <Table.Td>
+                                <Text fw={600} size="sm" c="teal">
+                                  {atkTeam ? atkTeam.name : `Tim #${a.attackerId}`}
+                                </Text>
+                              </Table.Td>
+                              <Table.Td>
+                                <Text size="sm" c="red">
+                                  {vicTeam ? vicTeam.name : `Tim #${a.victimId}`}
+                                </Text>
+                              </Table.Td>
+                              <Table.Td>
+                                <Badge size="xs" color="gray">
+                                  {a.service}
+                                </Badge>
+                              </Table.Td>
+                              <Table.Td>
+                                <Badge size="xs" color="orange" variant="light">
+                                  Flag Captured (+100)
+                                </Badge>
+                              </Table.Td>
+                            </Table.Tr>
+                          )
+                        })}
+                      </Table.Tbody>
+                    </Table>
+                  </ScrollArea>
+                )}
               </Paper>
             </Grid.Col>
 
@@ -688,18 +780,26 @@ const AdAdminPage: FC = () => {
                     Flag Aktif Tick Saat Ini (Generator Inspector)
                   </Title>
                   <Text size="xs" c="dimmed" mb="xs">
-                    Daftar flag yang disuntikkan ke vulnbox peserta pada tick ini:
+                    {isPreGame
+                      ? 'Engine berada dalam fase Standby. Flag akan digenerate saat kompetisi dimulai.'
+                      : 'Daftar flag yang disuntikkan ke vulnbox peserta pada tick ini:'}
                   </Text>
                   <ScrollArea h={220}>
                     <Stack gap="xs">
-                      {activeFlags.slice(0, 8).map((f, i) => (
-                        <Group key={i} justify="space-between" wrap="nowrap">
-                          <Badge size="xs" variant="outline">
-                            T{f.teamId} · {f.service}
-                          </Badge>
-                          <Code style={{ fontSize: '0.7rem' }}>{f.flag}</Code>
-                        </Group>
-                      ))}
+                      {activeFlags.length === 0 ? (
+                        <Text size="xs" c="dimmed" ta="center" py="md">
+                          Belum ada flag aktif (Standby).
+                        </Text>
+                      ) : (
+                        activeFlags.slice(0, 8).map((f, i) => (
+                          <Group key={i} justify="space-between" wrap="nowrap">
+                            <Badge size="xs" variant="outline">
+                              T{f.teamId} · {f.service}
+                            </Badge>
+                            <Code style={{ fontSize: '0.7rem' }}>{f.flag}</Code>
+                          </Group>
+                        ))
+                      )}
                     </Stack>
                   </ScrollArea>
                 </Paper>
