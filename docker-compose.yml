@@ -1,6 +1,6 @@
 services:
   # ==========================================
-  # Frontend Web UI (Nginx + React SPA)
+  # Frontend Web UI & Backend API (Bun)
   # ==========================================
   web:
     build:
@@ -11,22 +11,7 @@ services:
     ports:
       - "80:80"
       - "3000:80"
-    depends_on:
-      - api
-    networks:
-      - gz-network
-
-  # ==========================================
-  # Backend API & Scoreboard Mock Server (Bun)
-  # ==========================================
-  api:
-    build:
-      context: ./src/GZCTF/ClientApp
-      dockerfile: Dockerfile.api
-    container_name: gz-ad-api
-    restart: unless-stopped
-    ports:
-      - "8080:8080"
+      - "8080:80"
     networks:
       - gz-network
 
@@ -89,4 +74,3 @@ services:
 networks:
   gz-network:
     driver: bridge
-

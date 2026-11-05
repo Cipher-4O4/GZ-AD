@@ -1,10 +1,10 @@
-FROM nginx:alpine
+FROM oven/bun:alpine
+WORKDIR /app
 
-# Copy pre-compiled production build directly
-COPY build /usr/share/nginx/html
+# Copy pre-compiled production build & mock API
+COPY build ./build
+COPY mock-server.ts ./
 
-# Copy custom nginx configuration for SPA routing & API proxy
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
+ENV PORT=80
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["bun", "run", "mock-server.ts"]

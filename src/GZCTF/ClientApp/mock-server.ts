@@ -1,7 +1,7 @@
 // Lightweight Local Mock API Server for GZCTF UI/UX development
 // Runs on port 8080 to satisfy Vite's reverse proxy (/api -> http://localhost:8080)
 
-const port = 8080
+const port = process.env.PORT ? parseInt(process.env.PORT) : 8080
 
 const FINALIST_TEAMS_DATA = [
   {
@@ -290,9 +290,10 @@ Pastikan konfigurasi WireGuard VPN dan Token API sudah siap sebelum Round 1 dimu
 
 Bun.serve({
   port,
-  fetch(req) {
+  async fetch(req) {
     const url = new URL(req.url)
-    const path = url.pathname.toLowerCase()
+    const originalPath = url.pathname
+    const path = originalPath.toLowerCase()
 
     const headers = {
       'Content-Type': 'application/json',
@@ -303,6 +304,21 @@ Bun.serve({
 
     if (req.method === 'OPTIONS') {
       return new Response(null, { headers })
+    }
+
+    // Static assets & SPA fallback
+    if (!path.startsWith('/api') && !path.startsWith('/hub') && !path.startsWith('/swagger')) {
+      const cleanPath = originalPath === '/' ? '/index.html' : originalPath
+      const directFile = Bun.file(`./build${cleanPath}`)
+      if (await directFile.exists()) {
+        return new Response(directFile)
+      }
+      const indexFile = Bun.file('./build/index.html')
+      if (await indexFile.exists()) {
+        return new Response(indexFile, {
+          headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        })
+      }
     }
 
     // Config
