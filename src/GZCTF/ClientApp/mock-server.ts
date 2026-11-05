@@ -252,6 +252,7 @@ interface GameState {
   tickSeconds: number
   totalTickCount: number
   lastTickTimestamp: number
+  isPaused?: boolean
   teams: AdTeamData[]
   flags: Record<string, ActiveFlag>
   attacks: AttackLog[]
@@ -264,6 +265,7 @@ let state: GameState = {
   tickSeconds: 60,
   totalTickCount: 92,
   lastTickTimestamp: Date.now(),
+  isPaused: false,
   teams: JSON.parse(JSON.stringify(INITIAL_TEAMS)),
   flags: {},
   attacks: [
@@ -397,6 +399,7 @@ function sortTeams() {
 
 // Tick Timer loop running every 1000ms
 setInterval(() => {
+  if (state.isPaused) return
   const elapsed = Math.floor((Date.now() - state.lastTickTimestamp) / 1000)
   if (elapsed >= state.tickSeconds) {
     advanceTick()
@@ -640,11 +643,123 @@ Bun.serve({
       }
     }
 
-    // 6. Admin test trigger attack (useful for testing missile arcs live)
+    // 6. Admin Endpoints: Warfare Control, Flag Inspector & Attack Simulator
+    if (path === '/api/ad/admin/overview') {
+      const elapsed = Math.floor((Date.now() - state.lastTickTimestamp) / 1000)
+      const secondsLeft = Math.max(0, state.tickSeconds - elapsed)
+      const activeFlags = Object.values(state.flags).filter((f) => f.expiresTick >= state.totalTickCount)
+
+      return Response.json(
+        {
+          round: state.round,
+          tick: state.tick,
+          maxTick: state.maxTick,
+          tickSeconds: state.tickSeconds,
+          secondsLeft,
+          totalTickCount: state.totalTickCount,
+          isPaused: !!state.isPaused,
+          teams: state.teams,
+          activeFlags,
+          attacks: state.attacks,
+          services: SERVICES,
+        },
+        { headers }
+      )
+    }
+
+    if (path === '/api/ad/admin/control') {
+      try {
+        const body = await req.json()
+        const action = body.action
+
+        if (action === 'pause') {
+          state.isPaused = true
+          saveState()
+          return Response.json({ success: true, message: 'Engine di-pause' }, { headers })
+        } else if (action === 'resume') {
+          state.isPaused = false
+          state.lastTickTimestamp = Date.now()
+          saveState()
+          return Response.json({ success: true, message: 'Engine dilanjutkan' }, { headers })
+        } else if (action === 'next-tick') {
+          advanceTick()
+          return Response.json({ success: true, message: `Berpindah ke Tick ${state.tick} (Round ${state.round})` }, { headers })
+        } else if (action === 'set-tick-seconds') {
+          const secs = parseInt(body.tickSeconds || '60')
+          state.tickSeconds = Math.max(10, secs)
+          state.lastTickTimestamp = Date.now()
+          saveState()
+          return Response.json({ success: true, message: `Durasi tick diatur ke ${state.tickSeconds}s` }, { headers })
+        } else if (action === 'reset') {
+          state.round = 1
+          state.tick = 1
+          state.totalTickCount = 1
+          state.lastTickTimestamp = Date.now()
+          state.isPaused = false
+          state.flags = {}
+          state.attacks = []
+          state.teams = INITIAL_TEAMS.map((t, idx) => ({
+            id: idx + 1,
+            name: t.name,
+            school: t.school,
+            code: `T${401 + idx}`,
+            logo: t.logo,
+            rank: idx + 1,
+            score: 50000,
+            status: (t.status as AdStatus) || 'Operational',
+            captures: 0,
+            ip: t.ip,
+            services: {
+              'simple-crypto': { attack: 0, defense: 0, availability: 1000 },
+              'simple-pwn': { attack: 0, defense: 0, availability: 1000 },
+              'simple-web': { attack: 0, defense: 0, availability: 1000 },
+              coloring: { attack: 0, defense: 0, availability: 1000 },
+            },
+          }))
+          plantNewFlags()
+          saveState()
+          return Response.json({ success: true, message: 'Game direset ke Round 1 Tick 1' }, { headers })
+        }
+        return Response.json({ error: 'Aksi tidak dikenal' }, { status: 400, headers })
+      } catch (e: any) {
+        return Response.json({ error: e.message }, { status: 400, headers })
+      }
+    }
+
+    if (path === '/api/ad/admin/team-status') {
+      try {
+        const body = await req.json()
+        const teamId = parseInt(body.teamId)
+        const team = state.teams.find((t) => t.id === teamId)
+        if (!team) return Response.json({ error: 'Team not found' }, { status: 404, headers })
+
+        if (body.status) team.status = body.status
+        if (typeof body.scoreDelta === 'number') team.score = Math.max(0, team.score + body.scoreDelta)
+        if (typeof body.capturesDelta === 'number') team.captures = Math.max(0, team.captures + body.capturesDelta)
+
+        sortTeams()
+        saveState()
+        return Response.json({ success: true, team }, { headers })
+      } catch (e: any) {
+        return Response.json({ error: e.message }, { status: 400, headers })
+      }
+    }
+
     if (path === '/api/ad/admin/trigger-attack') {
-      const fromId = parseInt(url.searchParams.get('from') || '7')
-      const toId = parseInt(url.searchParams.get('to') || '5')
-      const svc = url.searchParams.get('svc') || 'simple-pwn'
+      let fromId = 7
+      let toId = 5
+      let svc = 'simple-pwn'
+
+      if (req.method === 'POST') {
+        const body = await req.json().catch(() => ({}))
+        fromId = parseInt(body.from || '7')
+        toId = parseInt(body.to || '5')
+        svc = body.svc || 'simple-pwn'
+      } else {
+        fromId = parseInt(url.searchParams.get('from') || '7')
+        toId = parseInt(url.searchParams.get('to') || '5')
+        svc = url.searchParams.get('svc') || 'simple-pwn'
+      }
 
       const attacker = state.teams.find((t) => t.id === fromId) || state.teams[6]
       const victim = state.teams.find((t) => t.id === toId) || state.teams[4]
@@ -655,7 +770,7 @@ Bun.serve({
       sortTeams()
 
       const attackEvent: AttackLog = {
-        id: `atk_${Date.now()}`,
+        id: `atk_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
         time: getTimeStr(),
         attackerId: attacker.id,
         victimId: victim.id,
@@ -666,6 +781,7 @@ Bun.serve({
       }
 
       state.attacks.unshift(attackEvent)
+      if (state.attacks.length > 50) state.attacks.pop()
       saveState()
 
       return Response.json({ success: true, attack: attackEvent }, { headers })
@@ -688,7 +804,7 @@ Bun.serve({
         {
           id: 'user_z3roday',
           userName: 'rootkids',
-          role: 'User',
+          role: 'Admin',
           team: {
             id: 7,
             name: 'Z3RODAY',

@@ -29,6 +29,7 @@ export const WithAdminTab: FC<AdminTabProps> = ({ head, headProps, isLoading, ch
 
   const pages = [
     { icon: mdiFlagOutline, title: t('admin.tab.games.index'), path: 'games' },
+    { icon: mdiSwordCross, title: 'Attack & Defense', path: 'ad' },
     { icon: mdiAccountGroupOutline, title: t('admin.tab.teams'), path: 'teams' },
     { icon: mdiAccountCogOutline, title: t('admin.tab.users'), path: 'users' },
     {
