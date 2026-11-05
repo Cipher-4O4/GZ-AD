@@ -904,86 +904,85 @@ export const AttackMap: FC = () => {
             </Title>
           </Box>
 
-          {/* List of top 10 teams */}
-          <ScrollArea style={{ flex: 1 }}>
-            <Stack gap={0}>
-              {FINALIST_TEAMS.map((t) => {
-                const isSelected = selectedTeam.id === t.id
-                return (
-                  <Group
-                    key={t.id}
-                    justify="space-between"
-                    px="md"
-                    py={10}
-                    onClick={() => setSelectedTeam(t)}
-                    style={{
-                      backgroundColor: isSelected ? 'rgba(32, 201, 151, 0.16)' : 'transparent',
-                      borderBottom: '1px solid #142521',
-                      borderLeft: isSelected ? '3px solid #20c997' : '3px solid transparent',
-                      cursor: 'pointer',
-                      transition: 'background-color 0.15s ease',
-                    }}
-                  >
-                    <Group gap="sm" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+          {/* List of top 10 teams - stretches vertically to fill the entire sidebar height */}
+          <Box style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            {FINALIST_TEAMS.map((t) => {
+              const isSelected = selectedTeam.id === t.id
+              return (
+                <Group
+                  key={t.id}
+                  justify="space-between"
+                  px="md"
+                  onClick={() => setSelectedTeam(t)}
+                  style={{
+                    flex: 1,
+                    minHeight: '54px',
+                    backgroundColor: isSelected ? 'rgba(32, 201, 151, 0.16)' : 'transparent',
+                    borderBottom: '1px solid #142521',
+                    borderLeft: isSelected ? '4px solid #20c997' : '4px solid transparent',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.15s ease',
+                  }}
+                >
+                  <Group gap="md" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+                    <Text
+                      size="sm"
+                      ff="monospace"
+                      fw={800}
+                      c={t.rank === 1 ? '#fab005' : '#839290'}
+                      style={{ width: '26px' }}
+                    >
+                      {t.rank < 10 ? `0${t.rank}` : t.rank}
+                    </Text>
+                    <Box
+                      w={42}
+                      h={42}
+                      style={{
+                        borderRadius: '50%',
+                        backgroundColor: '#0a1414',
+                        border: '1px solid #1a332d',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '3px',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Image src={t.logo} alt={t.name} w={34} h={34} fit="contain" fallbackSrc="/favicon.webp" />
+                    </Box>
+                    <Stack gap={2} style={{ minWidth: 0, flex: 1 }}>
                       <Text
                         size="sm"
-                        ff="monospace"
                         fw={800}
-                        c={t.rank === 1 ? '#fab005' : '#839290'}
-                        style={{ width: '24px' }}
+                        c="white"
+                        style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                       >
-                        {t.rank < 10 ? `0${t.rank}` : t.rank}
+                        {t.name}
                       </Text>
-                      <Box
-                        w={38}
-                        h={38}
-                        style={{
-                          borderRadius: '50%',
-                          backgroundColor: '#0a1414',
-                          border: '1px solid #1a332d',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          padding: '3px',
-                          flexShrink: 0,
-                        }}
-                      >
-                        <Image src={t.logo} alt={t.name} w={30} h={30} fit="contain" fallbackSrc="/favicon.webp" />
-                      </Box>
-                      <Stack gap={1} style={{ minWidth: 0, flex: 1 }}>
+                      <Group gap={6}>
+                        <Icon
+                          path={mdiCircle}
+                          size={0.25}
+                          color={t.status === 'Operational' ? '#20c997' : '#fab005'}
+                        />
                         <Text
-                          size="sm"
-                          fw={700}
-                          c="white"
+                          size="11px"
+                          c="#6b7c78"
                           style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                         >
-                          {t.name}
+                          {t.teamCode} · {t.status}
                         </Text>
-                        <Group gap={5}>
-                          <Icon
-                            path={mdiCircle}
-                            size={0.25}
-                            color={t.status === 'Operational' ? '#20c997' : '#fab005'}
-                          />
-                          <Text
-                            size="11px"
-                            c="#6b7c78"
-                            style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-                          >
-                            {t.teamCode} · {t.status}
-                          </Text>
-                        </Group>
-                      </Stack>
-                    </Group>
-
-                    <Text size="sm" ff="monospace" fw={800} c="#ffffff" style={{ flexShrink: 0 }}>
-                      {t.score.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
-                    </Text>
+                      </Group>
+                    </Stack>
                   </Group>
-                )
-              })}
-            </Stack>
-          </ScrollArea>
+
+                  <Text size="sm" ff="monospace" fw={800} c="#ffffff" style={{ flexShrink: 0 }}>
+                    {t.score.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+                  </Text>
+                </Group>
+              )
+            })}
+          </Box>
 
           {/* Bottom Card for Selected Team matching user reference */}
           <Box
@@ -1020,22 +1019,32 @@ export const AttackMap: FC = () => {
           display: 'flex',
           alignItems: 'stretch',
           overflow: 'hidden',
-          height: '48px',
+          height: '62px',
         }}
       >
         {/* Left Green Label */}
         <Box
-          px="md"
+          px="lg"
           style={{
             borderRight: '1px solid #142521',
             display: 'flex',
             alignItems: 'center',
-            backgroundColor: '#0a1413',
+            backgroundColor: '#0a1514',
             flexShrink: 0,
+            gap: '8px',
           }}
         >
+          <Box
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              backgroundColor: '#20c997',
+              boxShadow: '0 0 10px #20c997',
+            }}
+          />
           <Text
-            size="11px"
+            size="12px"
             ff="monospace"
             fw={900}
             c="#20c997"
@@ -1058,8 +1067,8 @@ export const AttackMap: FC = () => {
           {activityLogs.map((log, i) => (
             <Box
               key={i}
-              px="md"
-              py={4}
+              px="lg"
+              py={6}
               style={{
                 borderRight: '1px solid #142521',
                 flexShrink: 0,
@@ -1068,11 +1077,20 @@ export const AttackMap: FC = () => {
                 justifyContent: 'center',
               }}
             >
-              <Text size="10px" c="#627874" ff="monospace">
+              <Text size="11px" c="#788e8a" ff="monospace" fw={600}>
                 {log.time} · {log.service}
               </Text>
-              <Text size="12px" fw={700} c={log.isMumble ? '#fab005' : '#ffffff'}>
-                {log.text}
+              <Text size="13px" fw={800} c={log.isMumble ? '#fab005' : '#ffffff'}>
+                {log.text.includes('(Flag captured!)') ? (
+                  <>
+                    {log.text.replace(' (Flag captured!)', '')}{' '}
+                    <Text span c="#20c997" fw={900}>
+                      (Flag captured!)
+                    </Text>
+                  </>
+                ) : (
+                  log.text
+                )}
               </Text>
             </Box>
           ))}
