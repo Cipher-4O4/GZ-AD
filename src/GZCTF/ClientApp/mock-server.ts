@@ -925,6 +925,117 @@ Bun.serve({
       divisions: [],
     }
 
+    const adminGameInfo = {
+      id: 5,
+      title: 'Final Cybersecurity IONIC 2026',
+      summary: 'Babak Final Attack & Defense IONIC 2026',
+      content: '10 Tim Finalis Bertanding dalam Mode Attack & Defense Realtime.',
+      start: Date.now() - 3600000,
+      end: Date.now() + 6 * 3600000,
+      hidden: false,
+      practiceMode: true,
+      acceptWithoutReview: true,
+      writeupRequired: false,
+      teamCount: 10,
+      challengeCount: 4,
+      submissionCount: 142,
+    }
+
+    // Admin & Edit Endpoints
+    if (path.startsWith('/api/edit/games') || path.startsWith('/api/admin/games')) {
+      if (path === '/api/edit/games' || path === '/api/edit/games/' || path === '/api/admin/games') {
+        return Response.json(
+          {
+            total: 1,
+            length: 1,
+            data: [adminGameInfo],
+          },
+          { headers }
+        )
+      }
+      if (path.match(/\/api\/edit\/games\/\d+$/)) {
+        return Response.json(adminGameInfo, { headers })
+      }
+      if (path.includes('/challenges')) {
+        return Response.json(
+          {
+            total: 4,
+            length: 4,
+            data: [
+              { id: 1, title: 'simple-crypto', type: 'Normal', category: 'Crypto', score: 1000 },
+              { id: 2, title: 'simple-pwn', type: 'Normal', category: 'Pwn', score: 1000 },
+              { id: 3, title: 'simple-web', type: 'Normal', category: 'Web', score: 1000 },
+              { id: 4, title: 'coloring', type: 'Normal', category: 'Misc', score: 1000 },
+            ],
+          },
+          { headers }
+        )
+      }
+      return Response.json({ total: 1, length: 1, data: [adminGameInfo] }, { headers })
+    }
+
+    if (path.startsWith('/api/admin/teams')) {
+      const teamsList = INITIAL_TEAMS.map((t) => ({
+        id: t.id,
+        name: t.name,
+        bio: t.school,
+        avatar: t.logo,
+        memberCount: 3,
+        locked: false,
+      }))
+      return Response.json({ total: teamsList.length, length: teamsList.length, data: teamsList }, { headers })
+    }
+
+    if (path.startsWith('/api/admin/users')) {
+      const usersList = [
+        { id: '1', userName: 'Admin', email: 'admin@ionic.id', role: 'Admin', team: 'Panitia' },
+        { id: '2', userName: 'rootkids', email: 'rootkids@ionic.id', role: 'User', team: 'Z3RODAY' },
+      ]
+      return Response.json({ total: usersList.length, length: usersList.length, data: usersList }, { headers })
+    }
+
+    if (path.startsWith('/api/admin/logs')) {
+      return Response.json(
+        {
+          total: ATTACK_LOGS.length,
+          length: ATTACK_LOGS.length,
+          data: ATTACK_LOGS.map((l) => ({
+            id: l.id,
+            time: l.time,
+            type: 'SubmitFlag',
+            ip: '10.43.170.100',
+            message: `[Attack] Team ${l.attacker} exploited ${l.target} on ${l.service}`,
+          })),
+        },
+        { headers }
+      )
+    }
+
+    if (path.startsWith('/api/admin/instances')) {
+      return Response.json({ total: 0, length: 0, data: [] }, { headers })
+    }
+
+    if (path.startsWith('/api/admin/config')) {
+      return Response.json(
+        {
+          globalConfig: {
+            title: 'Final Cybersecurity IONIC 2026',
+            description: 'A&D Platform IONIC 2026',
+            slogan: 'Hack for fun not for profit',
+            footerInfo: 'IONIC 2026 Final Attack & Defense Competition',
+          },
+          accountPolicy: {
+            allowRegister: true,
+            activeOnRegister: true,
+            useCaptcha: false,
+            emailConfirmationRequired: false,
+          },
+          containerPolicy: {},
+        },
+        { headers }
+      )
+    }
+
     if (path.includes('/api/game/recent')) {
       return Response.json([singleGame], { headers })
     }
