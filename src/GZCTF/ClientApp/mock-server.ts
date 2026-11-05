@@ -284,6 +284,46 @@ let state: GameState = {
   attacks: [],
 }
 
+let singleGame: any = {
+  id: 5,
+  title: 'Final Cybersecurity IONIC 2026',
+  summary: 'Babak Final Attack & Defense IONIC 2026',
+  content: '10 Tim Finalis Bertanding dalam Mode Attack & Defense Realtime.',
+  poster: null,
+  start: Date.now() - 3600000,
+  end: Date.now() + 6 * 3600000,
+  status: 'Accepted',
+  practiceMode: true,
+  challengesCount: 4,
+  divisions: [],
+}
+
+let adminGameInfo: any = {
+  id: 5,
+  title: 'Final Cybersecurity IONIC 2026',
+  summary: 'Babak Final Attack & Defense IONIC 2026',
+  content: '10 Tim Finalis Bertanding dalam Mode Attack & Defense Realtime.',
+  poster: null,
+  start: Date.now() - 3600000,
+  end: Date.now() + 6 * 3600000,
+  hidden: false,
+  practiceMode: true,
+  acceptWithoutReview: true,
+  writeupRequired: false,
+  teamCount: 10,
+  challengeCount: 4,
+  submissionCount: 142,
+}
+
+function saveState() {
+  try {
+    const toSave = { ...state, poster: adminGameInfo?.poster ?? null }
+    writeFileSync(STATE_FILE, JSON.stringify(toSave, null, 2), 'utf-8')
+  } catch (err) {
+    console.error('[A&D Engine] Error saving state:', err)
+  }
+}
+
 function resetToStandbyState(corruptServices = true) {
   state.round = 0
   state.tick = 0
@@ -317,51 +357,19 @@ function resetToStandbyState(corruptServices = true) {
   saveState()
 }
 
-// Initialize with zero scores and initial broken state
-resetToStandbyState(true)
-
-let singleGame: any = {
-  id: 5,
-  title: 'Final Cybersecurity IONIC 2026',
-  summary: 'Babak Final Attack & Defense IONIC 2026',
-  content: '10 Tim Finalis Bertanding dalam Mode Attack & Defense Realtime.',
-  poster: null,
-  start: Date.now() - 3600000,
-  end: Date.now() + 6 * 3600000,
-  status: 'Accepted',
-  practiceMode: true,
-  challengesCount: 4,
-  divisions: [],
-}
-
-let adminGameInfo: any = {
-  id: 5,
-  title: 'Final Cybersecurity IONIC 2026',
-  summary: 'Babak Final Attack & Defense IONIC 2026',
-  content: '10 Tim Finalis Bertanding dalam Mode Attack & Defense Realtime.',
-  poster: null,
-  start: Date.now() - 3600000,
-  end: Date.now() + 6 * 3600000,
-  hidden: false,
-  practiceMode: true,
-  acceptWithoutReview: true,
-  writeupRequired: false,
-  teamCount: 10,
-  challengeCount: 4,
-  submissionCount: 142,
-}
-
 // Load existing state if available
+let stateRestored = false
 if (existsSync(STATE_FILE)) {
   try {
     const raw = readFileSync(STATE_FILE, 'utf-8')
     const loaded = JSON.parse(raw)
-    if (loaded && loaded.teams && loaded.round) {
+    if (loaded && loaded.teams && loaded.round !== undefined) {
       state = { ...state, ...loaded }
       if (loaded.poster) {
         adminGameInfo.poster = loaded.poster
         singleGame.poster = loaded.poster
       }
+      stateRestored = true
       console.log(`[A&D Engine] Successfully restored competition state (Round ${state.round}, Tick ${state.tick})`)
     }
   } catch (err) {
@@ -369,13 +377,8 @@ if (existsSync(STATE_FILE)) {
   }
 }
 
-function saveState() {
-  try {
-    const toSave = { ...state, poster: adminGameInfo.poster }
-    writeFileSync(STATE_FILE, JSON.stringify(toSave, null, 2), 'utf-8')
-  } catch (err) {
-    console.error('[A&D Engine] Error saving state:', err)
-  }
+if (!stateRestored) {
+  resetToStandbyState(true)
 }
 
 let loggedInUser: { id: string; userName: string; role: string; team?: any } | null = {
