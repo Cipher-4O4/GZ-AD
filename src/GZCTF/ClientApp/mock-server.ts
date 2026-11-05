@@ -79,15 +79,19 @@ const db = {
     end: Date.now() + 6 * 3600000 + 39 * 60000,
     status: 'Accepted',
     practiceMode: true,
+    adEnabled: true,
     challengesCount: 3,
     divisions: [],
   },
   teamInfo: {
+    teamToken: 'ad_KqcDuW9H-_HfhXtkdCI5TXLx9AQVfqIM7zUf-w8mjRE',
     rank: {
       rank: 10,
       name: 'ZeroDay SMKN 1 Boyolangu',
       score: 9575.2,
       solvedCount: 0,
+      divisionId: null,
+      solvedChallenges: [],
       avatar: '',
     },
     challengeCount: 3,
@@ -126,12 +130,14 @@ const db = {
       id: 1,
       type: 'Normal',
       values: ['Challenge baru [ledger-forge] telah dirilis.'],
+      time: new Date(Date.now() - 1800000).toISOString(),
       publishTime: new Date(Date.now() - 1800000).toISOString(),
     },
     {
       id: 2,
       type: 'Normal',
       values: ['Round 1 akan segera dimulai dalam 10 menit.'],
+      time: new Date(Date.now() - 3600000).toISOString(),
       publishTime: new Date(Date.now() - 3600000).toISOString(),
     },
   ],
@@ -242,7 +248,9 @@ Bun.serve({
         {
           acceptedCount: 1,
           totalPoints: 10.0,
-          results: [{ flag: 'flag{captured_from_target}', status: 'accepted', points: 10.0 }],
+          results: [
+            { flag: 'flag{captured_from_target}', status: 'accepted', points: 10.0 },
+          ],
         },
         { headers }
       )

@@ -1,85 +1,88 @@
-import {
-  ActionIcon,
-  Avatar,
-  Badge,
-  Box,
-  Card,
-  Group,
-  ScrollArea,
-  Stack,
-  Text,
-  Title,
-  Tooltip,
-} from '@mantine/core'
-import {
-  mdiCheckCircle,
-  mdiCircle,
-  mdiFullscreen,
-  mdiFullscreenExit,
-  mdiSwordCross,
-} from '@mdi/js'
+import { ActionIcon, Avatar, Box, Group, ScrollArea, Stack, Text, Title, Tooltip } from '@mantine/core'
+import { mdiFullscreen, mdiFullscreenExit } from '@mdi/js'
 import { Icon } from '@mdi/react'
 import { FC, useEffect, useRef, useState } from 'react'
+import { useParams } from 'react-router'
+import { AdColors, AdStatusColor } from '@Utils/Ad'
+import { AD_ACTIVITY, AD_TEAMS, SELF_TEAM, type AdTeam, formatPoints } from '@Utils/AdData'
+import { useGame } from '@Hooks/useGame'
+import classes from '@Styles/AttackMap.module.css'
 
-interface TeamNode {
-  id: string
-  name: string
-  score: number
-  rank: number
-  status: 'Operational' | 'Recovering' | 'Mumble' | 'Offline'
-  teamCode: string
-  x: number // percentage 0-100
-  y: number // percentage 0-100
+interface Beam {
+  id: number
+  from: AdTeam
   color: string
 }
 
-interface AttackEvent {
-  id: string
-  time: string
-  service: string
-  attacker: string
-  victim: string
-  attackerX: number
-  attackerY: number
-  victimX: number
-  victimY: number
-  color: string
-}
+const COLS = 5
+const ROWS = 8
+const BEAM_COLORS = ['#fab005', '#fd7e14', '#fa5252']
 
-const DEFAULT_TEAMS: TeamNode[] = [
-  { id: '1', name: 'pacman -Sybau', score: 22851.2, rank: 1, status: 'Operational', teamCode: 'T407', x: 80, y: 15, color: '#e03131' },
-  { id: '2', name: 'TOP - EsemkitaJayal', score: 22527.6, rank: 2, status: 'Operational', teamCode: 'T403', x: 20, y: 15, color: '#2f9e44' },
-  { id: '3', name: 'Offset e offside', score: 18434.2, rank: 3, status: 'Operational', teamCode: 'T417', x: 80, y: 40, color: '#1971c2' },
-  { id: '4', name: 'lethe cyber 1', score: 18118.4, rank: 4, status: 'Operational', teamCode: 'T424', x: 35, y: 55, color: '#f59f00' },
-  { id: '5', name: 'gak_jago_sama_gak_j...', score: 17892.5, rank: 5, status: 'Operational', teamCode: 'T408', x: 20, y: 35, color: '#e03131' },
-  { id: '6', name: 'SMAPa 2', score: 16030.5, rank: 6, status: 'Mumble', teamCode: 'T435', x: 50, y: 70, color: '#f59f00' },
-  { id: '7', name: 'dil saran jeneng tim', score: 14578.5, rank: 7, status: 'Operational', teamCode: 'T413', x: 20, y: 48, color: '#e03131' },
-  { id: '8', name: 'SCS - bingung pas ma...', score: 14016.6, rank: 8, status: 'Operational', teamCode: 'T410', x: 50, y: 35, color: '#1971c2' },
-  { id: '9', name: 'SCS - DUO WIJAYA SIAP...', score: 10571.4, rank: 9, status: 'Operational', teamCode: 'T405', x: 50, y: 15, color: '#e03131' },
-  { id: '10', name: 'ZeroDay SMKN 1 Boyola...', score: 9575.2, rank: 10, status: 'Offline', teamCode: 'T440', x: 50, y: 85, color: '#2f9e44' },
-  { id: '11', name: 'Pungging Jaya', score: 9200.0, rank: 11, status: 'Operational', teamCode: 'T409', x: 35, y: 15, color: '#1971c2' },
-  { id: '12', name: 'Keong Classix', score: 8900.0, rank: 12, status: 'Operational', teamCode: 'T412', x: 65, y: 35, color: '#1971c2' },
-  { id: '13', name: 'Opo yo enak e', score: 8500.0, rank: 13, status: 'Operational', teamCode: 'T414', x: 20, y: 65, color: '#e03131' },
-  { id: '14', name: 'PPLG HENGKER', score: 8100.0, rank: 14, status: 'Operational', teamCode: 'T415', x: 80, y: 85, color: '#1971c2' },
-  { id: '15', name: 'SandWorm', score: 7900.0, rank: 15, status: 'Operational', teamCode: 'T416', x: 50, y: 55, color: '#1971c2' },
-  { id: '16', name: 'GARDA DIGITAL', score: 7500.0, rank: 16, status: 'Operational', teamCode: 'T418', x: 65, y: 85, color: '#1971c2' },
+const LOGO_BG = [
+  'linear-gradient(145deg, #22415c, #16283a)',
+  'linear-gradient(145deg, #3d2a5e, #241a38)',
+  'linear-gradient(145deg, #28503a, #162c21)',
+  'linear-gradient(145deg, #5c2b2b, #331818)',
+  'linear-gradient(145deg, #4d3d1d, #2b2211)',
+  'linear-gradient(145deg, #1f4a4a, #122a2a)',
 ]
 
+const position = (index: number) => ({
+  x: ((index % COLS) + 0.5) * (100 / COLS),
+  y: 6 + Math.floor(index / COLS) * (88 / (ROWS - 1)),
+})
+
+const curve = (from: { x: number; y: number }, to: { x: number; y: number }) => {
+  const mx = (from.x + to.x) / 2
+  const my = (from.y + to.y) / 2
+  const dx = to.x - from.x
+  const dy = to.y - from.y
+  const len = Math.hypot(dx, dy) || 1
+  const offset = len * 0.14
+  return `M ${from.x} ${from.y} Q ${mx + (-dy / len) * offset} ${my + (dx / len) * offset} ${to.x} ${to.y}`
+}
+
+const Pill: FC<{ label: string; value?: string; active?: boolean }> = ({ label, value, active }) => (
+  <Group
+    gap={6}
+    wrap="nowrap"
+    px={10}
+    py={6}
+    style={{
+      border: `1px solid ${active ? 'rgba(18, 184, 134, 0.45)' : AdColors.border}`,
+      backgroundColor: active ? 'rgba(18, 184, 134, 0.1)' : 'rgba(255, 255, 255, 0.02)',
+      borderRadius: 6,
+    }}
+  >
+    <Text
+      ff="monospace"
+      fz={10}
+      fw={700}
+      style={{ letterSpacing: '0.12em', color: active ? AdColors.primaryText : AdColors.dimmer }}
+    >
+      {label}
+    </Text>
+    {value && (
+      <Text ff="monospace" fz={11} fw={700} style={{ color: active ? AdColors.primaryText : AdColors.text }}>
+        {value}
+      </Text>
+    )}
+  </Group>
+)
+
 export const AttackMap: FC = () => {
+  const { id } = useParams()
+  const { game } = useGame(parseInt(id ?? '-1'))
+
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const [round, setRound] = useState(26)
-  const [tick, setTick] = useState(1)
-  const [activeAttacks, setActiveAttacks] = useState<AttackEvent[]>([])
-  const [activityLogs, setActivityLogs] = useState<
-    { time: string; service: string; text: string }[]
-  >([
-    { time: '11.34.33', service: 'simple-pwn', text: 'ZeroDay SMKN 1 Boyolangu → PPLG HENGKER' },
-    { time: '11.34.33', service: 'simple-pwn', text: 'ZeroDay SMKN 1 Boyolangu → Keong Classix' },
-    { time: '11.34.33', service: 'simple-pwn', text: 'ZeroDay SMKN 1 Boyolangu → Opo yo enak e' },
-    { time: '11.34.33', service: 'simple-crypto', text: 'pacman -Sybau → TOP - EsemkitaJayal' },
-  ])
+  const [beams, setBeams] = useState<Beam[]>([])
+  const [activity, setActivity] = useState(AD_ACTIVITY)
+  const beamId = useRef(0)
 
   const containerRef = useRef<HTMLDivElement>(null)
+  const selfTeam = AD_TEAMS.find((team) => team.self)!
+  const selfPos = position(AD_TEAMS.indexOf(selfTeam))
+  const topTeams = [...AD_TEAMS].sort((a, b) => a.rank - b.rank).slice(0, 10)
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -91,349 +94,297 @@ export const AttackMap: FC = () => {
     }
   }
 
-  // Laser attack animation generator
+  // Attacks are simulated: every couple of seconds a random team fires at us.
   useEffect(() => {
     const interval = setInterval(() => {
-      const attacker = DEFAULT_TEAMS[Math.floor(Math.random() * DEFAULT_TEAMS.length)]
-      const victim = DEFAULT_TEAMS[Math.floor(Math.random() * DEFAULT_TEAMS.length)]
-      if (attacker.id === victim.id) return
+      const candidates = AD_TEAMS.filter((team) => !team.self)
+      const from = candidates[Math.floor(Math.random() * candidates.length)]
+      const color = BEAM_COLORS[Math.floor(Math.random() * BEAM_COLORS.length)]
+      const id = ++beamId.current
 
-      const services = ['simple-pwn', 'simple-web', 'simple-crypto']
-      const service = services[Math.floor(Math.random() * services.length)]
-      const colors = ['#ff922b', '#ff6b6b', '#20c997', '#339af0']
-      const color = colors[Math.floor(Math.random() * colors.length)]
-
-      const attack: AttackEvent = {
-        id: Math.random().toString(),
-        time: new Date().toLocaleTimeString('id-ID'),
-        service,
-        attacker: attacker.name,
-        victim: victim.name,
-        attackerX: attacker.x,
-        attackerY: attacker.y,
-        victimX: victim.x,
-        victimY: victim.y,
-        color,
-      }
-
-      setActiveAttacks((prev) => [...prev.slice(-6), attack])
-      setActivityLogs((prev) => [
-        { time: attack.time, service: attack.service, text: `${attacker.name} → ${victim.name}` },
-        ...prev.slice(0, 15),
+      setBeams((prev) => [...prev.slice(-5), { id, from, color }])
+      setActivity((prev) => [
+        {
+          time: new Date().toLocaleTimeString('id-ID', { hour12: false }),
+          service: ['simple-pwn', 'simple-crypto', 'simple-web'][Math.floor(Math.random() * 3)],
+          text: `${from.name} → ${SELF_TEAM}`,
+          color,
+        },
+        ...prev.slice(0, 6),
       ])
-    }, 2000)
+
+      setTimeout(() => setBeams((prev) => prev.filter((beam) => beam.id !== id)), 2600)
+    }, 1700)
 
     return () => clearInterval(interval)
   }, [])
 
   return (
-    <Box
-      ref={containerRef}
-      style={{
-        backgroundColor: '#0c0d10',
-        color: '#e4e5e7',
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-      }}
-    >
-      {/* Top Header Bar */}
+    <Box ref={containerRef} className={classes.root}>
+      {/* Header */}
       <Box
         px="lg"
         py="sm"
-        style={{
-          borderBottom: '1px solid #1f2127',
-          backgroundColor: '#111216',
-        }}
+        style={{ borderBottom: `1px solid ${AdColors.borderSoft}`, backgroundColor: AdColors.bgAlt }}
       >
-        <Group justify="space-between" align="center">
-          <Group gap="lg">
-            <Stack gap={2}>
-              <Text size="xs" ff="monospace" c="dimmed" fw={600}>
-                ATTACK & DEFENSE · PUBLIC VIEW
-              </Text>
-              <Title order={3} c="white" fw={800}>
-                Warm Up Final
-              </Title>
-            </Stack>
+        <Group justify="space-between" align="center" wrap="nowrap" gap="md">
+          <Stack gap={2}>
+            <Text
+              ff="monospace"
+              fz={10}
+              fw={700}
+              style={{ letterSpacing: '0.16em', color: AdColors.dimmer }}
+            >
+              ATTACK &amp; DEFENSE · PUBLIC VIEW
+            </Text>
+            <Title order={3} fz="1.35rem" fw={800} style={{ color: '#fff' }}>
+              {game?.title ?? 'Warm Up Final'}
+            </Title>
+          </Stack>
 
-            <Group gap="xs">
-              <Badge variant="outline" color="gray" size="lg" radius="sm">
-                Arena &nbsp;<Text span c="white" fw={700}>East Java</Text>
-              </Badge>
-              <Badge variant="outline" color="gray" size="lg" radius="sm">
-                ROUND &nbsp;<Text span c="white" fw={700}>{round}</Text>
-              </Badge>
-              <Badge variant="outline" color="gray" size="lg" radius="sm">
-                TICK &nbsp;<Text span c="teal" fw={700}>0{tick}</Text>&nbsp;/ 5
-              </Badge>
-              <Badge variant="outline" color="gray" size="lg" radius="sm">
-                NEXT TICK &nbsp;<Text span c="teal" fw={600}>Awaiting next tick</Text>
-              </Badge>
-            </Group>
+          <Group gap={8} wrap="nowrap">
+            <Pill label="ARENA" active />
+            <Pill label="East Java" />
+            <Pill label="ROUND" value="26" />
+            <Pill label="TICK" value="01 / 5" />
+            <Pill label="NEXT TICK" value="Awaiting next tick" />
+            <ActionIcon
+              size="lg"
+              radius="sm"
+              onClick={toggleFullscreen}
+              style={{ border: `1px solid ${AdColors.border}`, backgroundColor: 'rgba(255,255,255,0.02)' }}
+            >
+              <Icon path={isFullscreen ? mdiFullscreenExit : mdiFullscreen} size={0.9} color={AdColors.dim} />
+            </ActionIcon>
           </Group>
-
-          <ActionIcon
-            variant="default"
-            size="lg"
-            radius="sm"
-            onClick={toggleFullscreen}
-            style={{ backgroundColor: '#1a1b20', border: '1px solid #2e3036' }}
-          >
-            <Icon path={isFullscreen ? mdiFullscreenExit : mdiFullscreen} size={1} />
-          </ActionIcon>
         </Group>
       </Box>
 
-      {/* Main Area: Grid & Sidebar */}
-      <Box style={{ flex: 1, display: 'flex', position: 'relative', overflow: 'hidden' }}>
-        {/* Attack Map Canvas Area */}
-        <Box
-          style={{
-            flex: 1,
-            position: 'relative',
-            backgroundColor: '#0c0d10',
-            backgroundImage:
-              'radial-gradient(circle at 50% 50%, rgba(20, 80, 70, 0.15) 0%, transparent 70%), linear-gradient(#14161c 1px, transparent 1px), linear-gradient(90deg, #14161c 1px, transparent 1px)',
-            backgroundSize: '100% 100%, 40px 40px, 40px 40px',
-            overflow: 'hidden',
-          }}
-        >
-          {/* SVG Lasers */}
+      {/* Map + scores */}
+      <Box style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+        <Box className={classes.canvas} style={{ flex: 1 }}>
+          <Group gap={6} px="lg" py="sm" style={{ position: 'absolute', top: 0, left: 0, zIndex: 3 }}>
+            <Box className={classes.liveDot} />
+            <Text ff="monospace" fz={10} fw={700} style={{ letterSpacing: '0.18em', color: AdColors.primaryText }}>
+              LIVE
+            </Text>
+          </Group>
+
+          {/* Attack beams */}
           <svg
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              pointerEvents: 'none',
-              zIndex: 1,
-            }}
+            width="100%"
+            height="100%"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 1 }}
           >
             <defs>
-              <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="3" result="glow" />
+              <filter id="ad-glow" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur stdDeviation="0.7" result="blur" />
                 <feMerge>
-                  <feMergeNode in="glow" />
+                  <feMergeNode in="blur" />
                   <feMergeNode in="SourceGraphic" />
                 </feMerge>
               </filter>
             </defs>
-            {activeAttacks.map((atk) => (
-              <g key={atk.id}>
-                {/* Outer Glow */}
-                <line
-                  x1={`${atk.attackerX}%`}
-                  y1={`${atk.attackerY}%`}
-                  x2={`${atk.victimX}%`}
-                  y2={`${atk.victimY}%`}
-                  stroke={atk.color}
-                  strokeWidth="3"
-                  opacity="0.8"
-                  filter="url(#glow)"
-                />
-                {/* Inner Core */}
-                <line
-                  x1={`${atk.attackerX}%`}
-                  y1={`${atk.attackerY}%`}
-                  x2={`${atk.victimX}%`}
-                  y2={`${atk.victimY}%`}
-                  stroke="#ffffff"
-                  strokeWidth="1.5"
-                  opacity="0.9"
-                />
-              </g>
-            ))}
+            {beams.map((beam) => {
+              const from = position(AD_TEAMS.indexOf(beam.from))
+              const path = curve(from, selfPos)
+
+              return (
+                <g key={beam.id} className={classes.beam}>
+                  <path
+                    d={path}
+                    fill="none"
+                    stroke={beam.color}
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    opacity={0.55}
+                    filter="url(#ad-glow)"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                  <path
+                    d={path}
+                    className={classes.beamCore}
+                    fill="none"
+                    stroke={beam.color}
+                    strokeWidth={1}
+                    strokeLinecap="round"
+                    opacity={0.95}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                </g>
+              )
+            })}
           </svg>
 
-          {/* Team Nodes */}
-          {DEFAULT_TEAMS.map((team) => (
-            <Box
-              key={team.id}
-              style={{
-                position: 'absolute',
-                left: `${team.x}%`,
-                top: `${team.y}%`,
-                transform: 'translate(-50%, -50%)',
-                zIndex: 2,
-                textAlign: 'center',
-                cursor: 'pointer',
-              }}
-            >
-              <Tooltip label={`${team.name} • Rank #${team.rank} • ${team.score.toLocaleString()} pts`}>
-                <Stack align="center" gap={4}>
+          {/* Team nodes */}
+          {AD_TEAMS.map((team, index) => {
+            const pos = position(index)
+            const isSelf = !!team.self
+
+            return (
+              <Tooltip
+                key={team.id}
+                label={`${team.name} · #${team.rank} · ${formatPoints(team.score)} pts · ${team.status}`}
+                withArrow
+                position="top"
+                styles={{ tooltip: { backgroundColor: AdColors.surfaceRaised, border: `1px solid ${AdColors.border}` } }}
+              >
+                <Box
+                  className={`${classes.node} ${isSelf ? classes.self : ''}`}
+                  style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+                >
                   <Box
+                    className={classes.nodeLogo}
                     style={{
-                      width: '42px',
-                      height: '42px',
-                      borderRadius: '8px',
-                      backgroundColor: '#191b22',
-                      border: `2px solid ${team.rank <= 3 ? '#fab005' : '#2b2d38'}`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-                      transition: 'transform 0.2s',
+                      background: LOGO_BG[index % LOGO_BG.length],
+                      borderColor: team.rank <= 3 ? AdColors.gold : undefined,
+                      color: team.rank <= 3 ? AdColors.gold : '#dfe1e5',
                     }}
                   >
-                    <Avatar radius="sm" size={34} color={team.color}>
-                      {team.name.slice(0, 2).toUpperCase()}
-                    </Avatar>
+                    {team.code.replace('T', '')}
                   </Box>
-                  <Text
-                    size="10px"
-                    c="#c1c2c5"
-                    fw={600}
-                    style={{
-                      maxWidth: '85px',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      textShadow: '0 1px 3px rgba(0,0,0,0.9)',
-                    }}
-                  >
-                    {team.name}
-                  </Text>
-                </Stack>
+                  <Text className={classes.nodeName}>{team.name}</Text>
+                </Box>
               </Tooltip>
-            </Box>
-          ))}
+            )
+          })}
         </Box>
 
-        {/* Right Sidebar: OFFICIAL SCORES (Top 10) */}
+        {/* Official scores */}
         <Box
-          w="320px"
+          w={320}
           style={{
-            backgroundColor: '#101115',
-            borderLeft: '1px solid #1f2127',
+            backgroundColor: AdColors.bgAlt,
+            borderLeft: `1px solid ${AdColors.borderSoft}`,
             display: 'flex',
             flexDirection: 'column',
             zIndex: 3,
           }}
         >
-          {/* Header */}
-          <Box p="md" style={{ borderBottom: '1px solid #1f2127' }}>
+          <Box px="md" py="sm" style={{ borderBottom: `1px solid ${AdColors.borderSoft}` }}>
             <Group justify="space-between">
-              <Text size="xs" ff="monospace" c="dimmed" fw={700}>
+              <Text ff="monospace" fz={10} fw={700} style={{ letterSpacing: '0.14em', color: AdColors.dimmer }}>
                 OFFICIAL SCORES
               </Text>
-              <Text size="xs" c="dimmed" ff="monospace">
-                40 TEAMS
+              <Text ff="monospace" fz={10} style={{ color: AdColors.dimmer }}>
+                {AD_TEAMS.length} TEAMS
               </Text>
             </Group>
-            <Title order={4} c="white" fw={700} mt={4}>
+            <Text fz="0.95rem" fw={700} mt={2} style={{ color: '#fff' }}>
               Top 10
-            </Title>
+            </Text>
           </Box>
 
-          {/* List of top teams */}
-          <ScrollArea style={{ flex: 1 }} p="xs">
-            <Stack gap="xs">
-              {DEFAULT_TEAMS.slice(0, 10).map((t) => (
+          <ScrollArea style={{ flex: 1 }} scrollbarSize={4}>
+            <Stack gap={0} p={6}>
+              {topTeams.map((team) => (
                 <Group
-                  key={t.id}
+                  key={team.id}
                   justify="space-between"
-                  p="xs"
+                  wrap="nowrap"
+                  gap={8}
+                  px={8}
+                  py={6}
                   style={{
-                    backgroundColor: t.id === '10' ? 'rgba(47, 158, 68, 0.12)' : 'transparent',
-                    border: t.id === '10' ? '1px solid rgba(47, 158, 68, 0.4)' : '1px solid transparent',
-                    borderRadius: '6px',
+                    borderRadius: 6,
+                    backgroundColor: team.self ? 'rgba(18, 184, 134, 0.08)' : 'transparent',
+                    borderLeft: `2px solid ${team.self ? AdColors.primary : 'transparent'}`,
                   }}
                 >
-                  <Group gap="xs" wrap="nowrap">
-                    <Text size="xs" ff="monospace" fw={700} c={t.rank <= 3 ? '#fab005' : 'dimmed'}>
-                      {t.rank < 10 ? `0${t.rank}` : t.rank}
+                  <Group gap={8} wrap="nowrap" style={{ minWidth: 0 }}>
+                    <Text ff="monospace" fz={11} fw={700} style={{ color: team.rank <= 3 ? AdColors.gold : AdColors.dimmer }}>
+                      {String(team.rank).padStart(2, '0')}
                     </Text>
-                    <Avatar size={28} radius="sm" color={t.color}>
-                      {t.name.slice(0, 1)}
-                    </Avatar>
-                    <Stack gap={1} style={{ maxWidth: '130px' }}>
-                      <Text
-                        size="xs"
-                        fw={700}
-                        c="white"
-                        style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-                      >
-                        {t.name}
+                    <Avatar size={26} radius="xl" styles={{ root: { background: LOGO_BG[team.id % LOGO_BG.length] } }}>
+                      <Text ff="monospace" fz={9} fw={700} style={{ color: '#dfe1e5' }}>
+                        {team.code.replace('T', '')}
                       </Text>
-                      <Group gap={4}>
-                        <Icon
-                          path={mdiCircle}
-                          size={0.3}
-                          color={t.status === 'Operational' ? '#2f9e44' : '#e03131'}
+                    </Avatar>
+                    <Stack gap={1} style={{ minWidth: 0 }}>
+                      <Text fz={12} fw={600} truncate style={{ color: AdColors.text }}>
+                        {team.name}
+                      </Text>
+                      <Group gap={4} wrap="nowrap">
+                        <Box
+                          style={{
+                            width: 5,
+                            height: 5,
+                            borderRadius: '50%',
+                            backgroundColor: AdStatusColor[team.status],
+                          }}
                         />
-                        <Text size="10px" c="dimmed">
-                          {t.teamCode} · {t.status}
+                        <Text ff="monospace" fz={9} style={{ color: AdColors.dimmer }}>
+                          {team.code} · {team.status}
                         </Text>
                       </Group>
                     </Stack>
                   </Group>
-
-                  <Text size="xs" ff="monospace" fw={700} c="white">
-                    {t.score.toLocaleString('en-US', { minimumFractionDigits: 1 })}
+                  <Text ff="monospace" fz={11} fw={700} style={{ color: AdColors.text }}>
+                    {formatPoints(team.score)}
                   </Text>
                 </Group>
               ))}
             </Stack>
           </ScrollArea>
 
-          {/* Pinned Bottom Team (Current User / Selected Team) */}
-          <Box
-            p="md"
-            style={{
-              borderTop: '1px solid #1f2127',
-              backgroundColor: '#16181e',
-            }}
-          >
-            <Text size="sm" fw={700} c="white">
-              ZeroDay SMKN 1 Boyolangu
+          <Box px="md" py="sm" style={{ borderTop: `1px solid ${AdColors.borderSoft}`, backgroundColor: AdColors.surface }}>
+            <Text fz={12} fw={700} style={{ color: '#fff' }}>
+              {selfTeam.name}
             </Text>
-            <Text size="xs" c="dimmed" mt={2}>
-              #10 · SMKN 1 Boyolangu · 9,575.2 points
+            <Text ff="monospace" fz={10} style={{ color: AdColors.dimmer }}>
+              #{selfTeam.rank} · SMKN 1 Boyolangu · {formatPoints(selfTeam.score)} points
             </Text>
           </Box>
         </Box>
       </Box>
 
-      {/* Bottom Ticker: LIVE ACTIVITY */}
+      {/* Live activity ticker */}
       <Box
-        px="md"
-        py="xs"
         style={{
-          borderTop: '1px solid #1f2127',
-          backgroundColor: '#0d0e12',
-          overflow: 'hidden',
+          borderTop: `1px solid ${AdColors.borderSoft}`,
+          backgroundColor: '#0b0c0f',
           display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
+          alignItems: 'stretch',
+          height: 44,
+          overflow: 'hidden',
         }}
       >
-        <Badge color="teal" variant="filled" size="sm" radius="xs" style={{ flexShrink: 0 }}>
-          LIVE ACTIVITY
-        </Badge>
-        <Box
-          style={{
-            display: 'flex',
-            gap: '24px',
-            whiteSpace: 'nowrap',
-            overflowX: 'auto',
-          }}
+        <Group
+          gap={6}
+          px="md"
+          wrap="nowrap"
+          style={{ borderRight: `1px solid ${AdColors.borderSoft}`, flexShrink: 0 }}
         >
-          {activityLogs.map((log, i) => (
-            <Group key={i} gap="xs" style={{ flexShrink: 0 }}>
-              <Text size="xs" c="dimmed" ff="monospace">
-                {log.time} · {log.service}
+          <Box className={classes.liveDot} />
+          <Text ff="monospace" fz={10} fw={700} style={{ letterSpacing: '0.14em', color: AdColors.dim }}>
+            LIVE ACTIVITY
+          </Text>
+        </Group>
+
+        <Group gap={0} wrap="nowrap" style={{ flex: 1, overflowX: 'auto' }}>
+          {activity.map((log, index) => (
+            <Group
+              key={`${log.time}-${index}`}
+              gap={8}
+              wrap="nowrap"
+              px="md"
+              style={{ borderRight: `1px solid ${AdColors.borderSoft}`, height: '100%', flexShrink: 0 }}
+            >
+              <Text ff="monospace" fz={10} style={{ color: AdColors.dimmer }}>
+                {log.time}
               </Text>
-              <Text size="xs" fw={600} c="#90c2f7">
+              <Text ff="monospace" fz={10} style={{ color: AdColors.dimmer }}>
+                {log.service}
+              </Text>
+              <Text fz={11} fw={600} style={{ color: log.color }}>
                 {log.text}
               </Text>
             </Group>
           ))}
-        </Box>
+        </Group>
       </Box>
     </Box>
   )
 }
-
