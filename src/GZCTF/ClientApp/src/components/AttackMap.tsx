@@ -232,31 +232,43 @@ export const AttackMap: FC = () => {
   const [activeAttacker, setActiveAttacker] = useState<TeamNode | null>(null)
 
   const [activityLogs, setActivityLogs] = useState<
-    { time: string; service: string; text: string; isNuke?: boolean }[]
+    { time: string; service: string; text: string; isMumble?: boolean }[]
   >([
     {
-      time: '11:21:42',
-      service: 'ICBM-PWN',
-      text: 'Z3RODAY launched ICBM at WilSec - BOEDOET 47 [DIRECT HIT]',
-      isNuke: true,
+      time: '15.53.45',
+      service: 'simple-crypto',
+      text: 'Kak kita izin ga ngedit, mau ikut J...',
+      isMumble: false,
     },
     {
-      time: '11:21:38',
-      service: 'TORPEDO-WEB',
-      text: 'United Shell-SCC struck Gangantua Rock [SHIELD DOWN]',
-      isNuke: false,
+      time: '15.53.45',
+      service: 'simple-crypto',
+      text: 'Offset e offside → SMAPa 2 (Flag captured!)',
+      isMumble: false,
     },
     {
-      time: '11:21:30',
-      service: 'BALLISTIC-CRYPTO',
-      text: 'rootsanctum launched warhead at Maaf TKA Pilih CTF [DETONATED]',
-      isNuke: true,
+      time: '15.53.45',
+      service: 'simple-pwn',
+      text: 'ZeroDay SMKN 1 Boyolangu → Pungging Jaya (Flag captured!)',
+      isMumble: false,
     },
     {
-      time: '11:21:22',
-      service: 'ICBM-PWN',
-      text: 'WilSec - Apa aja fired missile at Duo Perncari Flag [INTERCEPTED]',
-      isNuke: false,
+      time: '15.53.45',
+      service: 'simple-crypto',
+      text: 'Es Teh Jumbo - MUMBLE',
+      isMumble: true,
+    },
+    {
+      time: '15.53.44',
+      service: 'simple-crypto',
+      text: 'United Shell-SCC → WilSec - Apa aja (Flag captured!)',
+      isMumble: false,
+    },
+    {
+      time: '15.53.40',
+      service: 'simple-pwn',
+      text: 'rootsanctum → Maaf TKA Pilih CTF (Flag captured!)',
+      isMumble: false,
     },
   ])
 
@@ -311,14 +323,19 @@ export const AttackMap: FC = () => {
 
       const pathD = `M ${x1} ${y1} Q ${midX} ${midY} ${x2} ${y2}`
 
-      const services = ['ICBM-PWN', 'BALLISTIC-WEB', 'CRUISE-CRYPTO', 'TACTICAL-NUKE']
+      const services = ['simple-pwn', 'simple-web', 'simple-crypto']
       const service = services[Math.floor(Math.random() * services.length)]
-      const colors = ['#ff6b6b', '#ff922b', '#20c997', '#339af0', '#fab005']
+      const colors = ['#20c997', '#ff6b6b', '#ff922b', '#339af0', '#fab005']
       const color = colors[Math.floor(Math.random() * colors.length)]
+
+      const isFlagCapture = Math.random() > 0.35
+      const text = isFlagCapture
+        ? `${attacker.name} → ${victim.name} (Flag captured!)`
+        : `${attacker.name} → ${victim.name}`
 
       const attack: AttackEvent = {
         id: Math.random().toString(),
-        time: new Date().toLocaleTimeString('id-ID', { hour12: false }),
+        time: new Date().toLocaleTimeString('id-ID', { hour12: false }).replace(/:/g, '.'),
         service,
         attacker,
         victim,
@@ -334,10 +351,10 @@ export const AttackMap: FC = () => {
         {
           time: attack.time,
           service: attack.service,
-          text: `${attacker.name} ➔ ${victim.name} [NUCLEAR DETONATION]`,
-          isNuke: true,
+          text,
+          isNuke: isFlagCapture,
         },
-        ...prev.slice(0, 15),
+        ...prev.slice(0, 20),
       ])
 
       // Clear detonation effect after 2s
@@ -858,121 +875,72 @@ export const AttackMap: FC = () => {
             )
           })}
 
-          {/* Bottom Right Selected Island Base Info Card */}
-          <Box
-            style={{
-              position: 'absolute',
-              bottom: '16px',
-              right: '16px',
-              backgroundColor: '#0c1524',
-              border: '1px solid #1c2e44',
-              borderRadius: '10px',
-              padding: '12px 16px',
-              zIndex: 5,
-              boxShadow: '0 10px 30px rgba(0,0,0,0.85)',
-              maxWidth: '350px',
-            }}
-          >
-            <Group gap="sm" wrap="nowrap">
-              <Box
-                w={44}
-                h={44}
-                style={{
-                  borderRadius: '50%',
-                  backgroundColor: '#111d2e',
-                  border: '2px solid #284462',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '5px',
-                  flexShrink: 0,
-                }}
-              >
-                <Image src={selectedTeam.logo} alt={selectedTeam.name} w={32} h={32} fit="contain" />
-              </Box>
-              <Stack gap={1} style={{ overflow: 'hidden' }}>
-                <Group gap={6}>
-                  <Text size="xs" fw={800} c="#38d9a9" ff="monospace">
-                    {selectedTeam.sector}
-                  </Text>
-                  <Text size="xs" c="dimmed">·</Text>
-                  <Text size="xs" fw={700} c="#94a3b8">
-                    {selectedTeam.islandName}
-                  </Text>
-                </Group>
-                <Text size="sm" fw={800} c="white" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {selectedTeam.name}
-                </Text>
-                <Text size="11px" c="#94a3b8" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  #{selectedTeam.rank} · {selectedTeam.school} · {selectedTeam.score.toLocaleString('id-ID', { minimumFractionDigits: 1 })} pts
-                </Text>
-              </Stack>
-            </Group>
-          </Box>
+          {/* Bottom Right Selected Island Base Info Card removed in favor of sidebar card */}
         </Box>
 
         {/* Right Sidebar: OFFICIAL SCORES (Top 10 Finalis) */}
         <Box
-          w="360px"
+          w="380px"
           style={{
-            backgroundColor: '#080d1a',
-            borderLeft: '1px solid #142033',
+            backgroundColor: '#0b1413',
+            borderLeft: '1px solid #142521',
             display: 'flex',
             flexDirection: 'column',
             zIndex: 10,
           }}
         >
           {/* Header */}
-          <Box p="md" style={{ borderBottom: '1px solid #142033' }}>
+          <Box px="md" py="sm" style={{ borderBottom: '1px solid #142521' }}>
             <Group justify="space-between" align="center">
-              <Text size="11px" ff="monospace" c="#64748b" fw={700} style={{ letterSpacing: '0.08em' }}>
-                WARFARE SCOREBOARD
+              <Text size="11px" ff="monospace" c="#627874" fw={700} style={{ letterSpacing: '0.08em' }}>
+                OFFICIAL SCORES
               </Text>
-              <Text size="11px" ff="monospace" c="#64748b" fw={700}>
-                10 ATOLLS
+              <Text size="11px" ff="monospace" c="#627874" fw={700}>
+                10 TEAMS
               </Text>
             </Group>
-            <Title order={3} c="#ffffff" fw={800} mt={4}>
-              Top 10 Finalis
+            <Title order={3} c="#ffffff" fw={800} mt={3}>
+              Top 10
             </Title>
           </Box>
 
           {/* List of top 10 teams */}
-          <ScrollArea style={{ flex: 1 }} p="xs">
-            <Stack gap={4}>
+          <ScrollArea style={{ flex: 1 }}>
+            <Stack gap={0}>
               {FINALIST_TEAMS.map((t) => {
                 const isSelected = selectedTeam.id === t.id
                 return (
                   <Group
                     key={t.id}
                     justify="space-between"
-                    p="xs"
+                    px="md"
+                    py={10}
                     onClick={() => setSelectedTeam(t)}
                     style={{
-                      backgroundColor: isSelected ? 'rgba(32, 201, 151, 0.1)' : 'transparent',
-                      border: isSelected ? '1px solid rgba(32, 201, 151, 0.35)' : '1px solid transparent',
-                      borderRadius: '8px',
+                      backgroundColor: isSelected ? 'rgba(32, 201, 151, 0.16)' : 'transparent',
+                      borderBottom: '1px solid #142521',
+                      borderLeft: isSelected ? '3px solid #20c997' : '3px solid transparent',
                       cursor: 'pointer',
                       transition: 'background-color 0.15s ease',
                     }}
                   >
                     <Group gap="sm" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
                       <Text
-                        size="xs"
+                        size="sm"
                         ff="monospace"
                         fw={800}
-                        c={t.rank === 1 ? '#fab005' : t.rank === 2 ? '#20c997' : '#64748b'}
-                        style={{ width: '20px' }}
+                        c={t.rank === 1 ? '#fab005' : '#839290'}
+                        style={{ width: '24px' }}
                       >
                         {t.rank < 10 ? `0${t.rank}` : t.rank}
                       </Text>
                       <Box
-                        w={32}
-                        h={32}
+                        w={38}
+                        h={38}
                         style={{
                           borderRadius: '50%',
-                          backgroundColor: '#0c141e',
-                          border: '1px solid #1c2e44',
+                          backgroundColor: '#0a1414',
+                          border: '1px solid #1a332d',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -980,90 +948,133 @@ export const AttackMap: FC = () => {
                           flexShrink: 0,
                         }}
                       >
-                        <Image src={t.logo} alt={t.name} w={24} h={24} fit="contain" fallbackSrc="/favicon.webp" />
+                        <Image src={t.logo} alt={t.name} w={30} h={30} fit="contain" fallbackSrc="/favicon.webp" />
                       </Box>
-                      <Stack gap={0} style={{ minWidth: 0, flex: 1 }}>
+                      <Stack gap={1} style={{ minWidth: 0, flex: 1 }}>
                         <Text
-                          size="xs"
+                          size="sm"
                           fw={700}
                           c="white"
                           style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                         >
                           {t.name}
                         </Text>
-                        <Group gap={4}>
+                        <Group gap={5}>
                           <Icon
                             path={mdiCircle}
                             size={0.25}
                             color={t.status === 'Operational' ? '#20c997' : '#fab005'}
                           />
                           <Text
-                            size="10px"
-                            c="#868e96"
+                            size="11px"
+                            c="#6b7c78"
                             style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                           >
-                            {t.teamCode} · {t.islandName}
+                            {t.teamCode} · {t.status}
                           </Text>
                         </Group>
                       </Stack>
                     </Group>
 
-                    <Text size="xs" ff="monospace" fw={800} c="#ffffff" style={{ flexShrink: 0 }}>
-                      {t.score.toLocaleString('id-ID', { minimumFractionDigits: 1 })}
+                    <Text size="sm" ff="monospace" fw={800} c="#ffffff" style={{ flexShrink: 0 }}>
+                      {t.score.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
                     </Text>
                   </Group>
                 )
               })}
             </Stack>
           </ScrollArea>
+
+          {/* Bottom Card for Selected Team matching user reference */}
+          <Box
+            p="sm"
+            style={{
+              borderTop: '1px solid #142521',
+              backgroundColor: '#091211',
+            }}
+          >
+            <Box
+              p="sm"
+              style={{
+                backgroundColor: '#0d1c19',
+                border: '1px solid #1a362f',
+                borderRadius: '8px',
+              }}
+            >
+              <Text size="sm" fw={800} c="white">
+                {selectedTeam.name}
+              </Text>
+              <Text size="11px" c="#627874" mt={2} ff="monospace">
+                #{selectedTeam.rank} · {selectedTeam.school} · {selectedTeam.score.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} points
+              </Text>
+            </Box>
+          </Box>
         </Box>
       </Box>
 
-      {/* Bottom Ticker: LIVE MISSILE ACTIVITY */}
+      {/* Bottom Ticker: LIVE ACTIVITY matching exact user reference image */}
       <Box
-        px="md"
-        py="xs"
         style={{
-          borderTop: '1px solid #142033',
-          backgroundColor: '#060a14',
-          overflow: 'hidden',
+          borderTop: '1px solid #142521',
+          backgroundColor: '#091010',
           display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
+          alignItems: 'stretch',
+          overflow: 'hidden',
+          height: '48px',
         }}
       >
-        <Badge
-          color="red"
-          variant="filled"
-          size="sm"
-          radius="xs"
+        {/* Left Green Label */}
+        <Box
+          px="md"
           style={{
+            borderRight: '1px solid #142521',
+            display: 'flex',
+            alignItems: 'center',
+            backgroundColor: '#0a1413',
             flexShrink: 0,
-            backgroundColor: '#ff6b6b',
-            color: '#000000',
-            fontWeight: 900,
-            letterSpacing: '0.05em',
           }}
         >
-          ICBM RADAR
-        </Badge>
+          <Text
+            size="11px"
+            ff="monospace"
+            fw={900}
+            c="#20c997"
+            style={{ letterSpacing: '0.12em', whiteSpace: 'nowrap' }}
+          >
+            LIVE ACTIVITY
+          </Text>
+        </Box>
+
+        {/* Events Scroller */}
         <Box
           style={{
             display: 'flex',
-            gap: '28px',
             whiteSpace: 'nowrap',
             overflowX: 'auto',
+            flex: 1,
+            alignItems: 'center',
           }}
         >
           {activityLogs.map((log, i) => (
-            <Group key={i} gap="xs" style={{ flexShrink: 0 }}>
-              <Text size="xs" c="#64748b" ff="monospace">
+            <Box
+              key={i}
+              px="md"
+              py={4}
+              style={{
+                borderRight: '1px solid #142521',
+                flexShrink: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+              }}
+            >
+              <Text size="10px" c="#627874" ff="monospace">
                 {log.time} · {log.service}
               </Text>
-              <Text size="xs" fw={700} c={log.isNuke ? '#ffa8a8' : '#81a6f8'}>
+              <Text size="12px" fw={700} c={log.isMumble ? '#fab005' : '#ffffff'}>
                 {log.text}
               </Text>
-            </Group>
+            </Box>
           ))}
         </Box>
       </Box>
