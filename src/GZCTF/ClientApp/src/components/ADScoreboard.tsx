@@ -1,7 +1,10 @@
 import {
+  ActionIcon,
+  Badge,
   Box,
   Button,
   Group,
+  Image,
   ScrollArea,
   Select,
   Stack,
@@ -9,11 +12,19 @@ import {
   Text,
   TextInput,
 } from '@mantine/core'
-import { mdiCrosshairsGps, mdiHeartPulse, mdiMagnify, mdiShieldOutline, mdiSwordCross } from '@mdi/js'
+import {
+  mdiChevronLeft,
+  mdiChevronRight,
+  mdiCrosshairsGps,
+  mdiHeartPulse,
+  mdiMagnify,
+  mdiShieldOutline,
+  mdiSwordCross,
+} from '@mdi/js'
 import { Icon } from '@mdi/react'
-import { FC, useMemo, useState } from 'react'
+import { FC, useEffect, useMemo, useState } from 'react'
 import { AdColors, AdStatusColor, adHeat, type AdStatus } from '@Utils/Ad'
-import { AD_MAX_CELL, AD_SCOREBOARD, AD_SERVICES, AD_TEAMS, SELF_TEAM, formatPoints } from '@Utils/AdData'
+import { AD_MAX_CELL, AD_SCOREBOARD, AD_SERVICES, SELF_TEAM, formatPoints } from '@Utils/AdData'
 
 const STATUSES: AdStatus[] = ['Operational', 'Recovering', 'Mumble', 'Offline']
 const STATUS_LABEL: Record<AdStatus, string> = {
@@ -29,27 +40,30 @@ const SUB_COLUMNS = [
   { key: 'availability' as const, icon: mdiHeartPulse, label: 'Availability points' },
 ]
 
-const TeamDot: FC<{ name: string }> = ({ name }) => {
-  const colors = ['#12b886', '#4dabf7', '#fab005', '#e64980', '#9775fa', '#ff922b']
-  const color = colors[name.charCodeAt(0) % colors.length]
-
+const TeamAvatar: FC<{ logo?: string; name: string }> = ({ logo, name }) => {
   return (
     <Box
       style={{
-        width: 22,
-        height: 22,
+        width: 28,
+        height: 28,
         borderRadius: '50%',
-        backgroundColor: color,
+        backgroundColor: '#121820',
+        border: '1px solid #202b38',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize: 10,
-        fontWeight: 800,
-        color: '#0b0c0f',
+        padding: 2,
         flexShrink: 0,
+        overflow: 'hidden',
       }}
     >
-      {name.slice(0, 1).toUpperCase()}
+      {logo ? (
+        <Image src={logo} alt={name} w={22} h={22} fit="contain" fallbackSrc="/favicon.webp" />
+      ) : (
+        <Text fz={10} fw={800} c="white">
+          {name.slice(0, 1).toUpperCase()}
+        </Text>
+      )}
     </Box>
   )
 }
@@ -57,10 +71,32 @@ const TeamDot: FC<{ name: string }> = ({ name }) => {
 export const ADScoreboard: FC = () => {
   const [division, setDivision] = useState<string | null>('Semua Tim')
   const [search, setSearch] = useState('')
+  const [round, setRound] = useState(26)
+  const [tick, setTick] = useState(3)
+  const [secondsLeft, setSecondsLeft] = useState(22)
+
+  // Countdown timer
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSecondsLeft((prev) => {
+        if (prev <= 1) {
+          setTick((t) => (t >= 5 ? 1 : t + 1))
+          return 30
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [])
 
   const visible = useMemo(() => {
     const query = search.trim().toLowerCase()
-    return query ? AD_SCOREBOARD.filter((row) => row.name.toLowerCase().includes(query)) : AD_SCOREBOARD
+    return query
+      ? AD_SCOREBOARD.filter(
+          (row) =>
+            row.name.toLowerCase().includes(query) || row.school.toLowerCase().includes(query)
+        )
+      : AD_SCOREBOARD
   }, [search])
 
   const findSelf = () => {
@@ -71,148 +107,213 @@ export const ADScoreboard: FC = () => {
   }
 
   const headCell = {
-    backgroundColor: '#101115',
-    borderBottom: `1px solid ${AdColors.border}`,
-    color: AdColors.dimmer,
+    backgroundColor: '#0c1318',
+    borderBottom: '1px solid #16242c',
+    color: '#7a8e9e',
     fontFamily: AdColors.mono,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: 700,
-    letterSpacing: '0.06em',
-    padding: '6px 8px',
+    letterSpacing: '0.04em',
+    padding: '8px 10px',
   } as const
 
   const bodyCell = {
-    borderBottom: `1px solid ${AdColors.borderSoft}`,
+    borderBottom: '1px solid #142028',
     fontFamily: AdColors.mono,
-    fontSize: 11,
-    color: AdColors.text,
-    padding: '5px 8px',
+    fontSize: 12,
+    color: '#e2e8f0',
+    padding: '8px 10px',
   } as const
 
   return (
-    <Box>
-      <Text fz={11} mb="sm" style={{ color: AdColors.dim }}>
-        Recent points can change. Open a team to see settled and provisional totals.
-      </Text>
+    <Box style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+      {/* Top Banner Notice */}
+      <Box
+        px="md"
+        py={6}
+        mb="md"
+        style={{
+          backgroundColor: '#0a151b',
+          border: '1px solid #142833',
+          borderRadius: '6px',
+        }}
+      >
+        <Text fz={11} style={{ color: '#8fa8be' }}>
+          Recent points can change. Open a team to see settled and provisional totals.
+        </Text>
+      </Box>
 
-      <Group justify="space-between" align="flex-end" wrap="nowrap" mb="sm" gap="md">
-        <Group gap={8} wrap="nowrap">
+      {/* Filter and Status Controls */}
+      <Group justify="space-between" align="flex-end" wrap="nowrap" mb="md" gap="md">
+        <Group gap="sm" wrap="nowrap">
           <Select
             value={division}
             onChange={setDivision}
-            data={['Semua Tim', 'Arena', 'East Java']}
+            data={['Semua Tim', 'Zero Arena', 'Java Sea Islands']}
             size="sm"
-            radius={6}
-            leftSection={<Icon path={mdiCrosshairsGps} size={0.65} color={AdColors.dim} />}
+            radius="md"
+            leftSection={<Icon path={mdiCrosshairsGps} size={0.65} color="#20c997" />}
             styles={{
               input: {
-                backgroundColor: AdColors.surface,
-                border: `1px solid ${AdColors.border}`,
-                color: AdColors.text,
+                backgroundColor: '#0c151c',
+                border: '1px solid #182c38',
+                color: '#e2e8f0',
                 fontSize: 12,
-                minWidth: 190,
+                minWidth: 180,
               },
             }}
           />
           <Button
             size="sm"
-            radius={6}
+            radius="md"
             leftSection={<Icon path={mdiCrosshairsGps} size={0.7} />}
             onClick={findSelf}
             styles={{
               root: {
                 backgroundColor: '#0d3b33',
-                border: '1px solid rgba(18, 184, 134, 0.55)',
-                color: AdColors.primaryText,
+                border: '1px solid rgba(32, 201, 151, 0.45)',
+                color: '#20c997',
                 fontSize: 12,
-                fontWeight: 600,
+                fontWeight: 700,
               },
-              label: { color: AdColors.primaryText },
             }}
           >
             Cari Tim saya
           </Button>
-        </Group>
-
-        <Group gap="md" align="flex-end" wrap="nowrap">
-          <Stack gap={2} align="flex-end">
-            <Group gap={10} wrap="nowrap">
-              <Text ff="monospace" fz={11} fw={700} style={{ color: AdColors.text }}>
-                Round 26
-              </Text>
-              <Text ff="monospace" fz={11} fw={700} style={{ color: AdColors.text }}>
-                Tick 4/5
-              </Text>
-            </Group>
-            <Text ff="monospace" fz={10} style={{ color: AdColors.dimmer }}>
-              next tick 0:22
-            </Text>
-          </Stack>
 
           <TextInput
             value={search}
             onChange={(event) => setSearch(event.currentTarget.value)}
-            placeholder="Cari tim"
+            placeholder="Cari tim..."
             size="sm"
-            radius={6}
-            leftSection={<Icon path={mdiMagnify} size={0.65} color={AdColors.dim} />}
+            radius="md"
+            leftSection={<Icon path={mdiMagnify} size={0.65} color="#7a8e9e" />}
             styles={{
               input: {
-                backgroundColor: AdColors.surface,
-                border: `1px solid ${AdColors.border}`,
-                color: AdColors.text,
+                backgroundColor: '#0c151c',
+                border: '1px solid #182c38',
+                color: '#e2e8f0',
                 fontSize: 12,
                 minWidth: 220,
               },
             }}
           />
         </Group>
-      </Group>
 
-      <Group gap={10} mb={6} wrap="nowrap">
-        <Text fz={10} style={{ color: AdColors.dimmer }}>
-          Status
-        </Text>
-        {STATUSES.map((status) => (
-          <Group key={status} gap={5} wrap="nowrap">
-            <Box
-              style={{ width: 6, height: 6, borderRadius: 1, backgroundColor: AdStatusColor[status] }}
-            />
-            <Text fz={10} style={{ color: AdColors.dim }}>
-              {STATUS_LABEL[status]}
+        {/* Right Info: Round & Countdown */}
+        <Group gap="md" align="center" wrap="nowrap">
+          <Group gap={6} align="center">
+            <ActionIcon
+              variant="default"
+              size="sm"
+              radius="sm"
+              onClick={() => setRound((r) => Math.max(1, r - 1))}
+              style={{ backgroundColor: '#0c151c', border: '1px solid #182c38', color: '#7a8e9e' }}
+            >
+              <Icon path={mdiChevronLeft} size={0.7} />
+            </ActionIcon>
+            <Text ff="monospace" fz={12} fw={800} c="white">
+              Round {round}
             </Text>
+            <ActionIcon
+              variant="default"
+              size="sm"
+              radius="sm"
+              onClick={() => setRound((r) => r + 1)}
+              style={{ backgroundColor: '#0c151c', border: '1px solid #182c38', color: '#7a8e9e' }}
+            >
+              <Icon path={mdiChevronRight} size={0.7} />
+            </ActionIcon>
           </Group>
-        ))}
+
+          <Box w="1px" h={20} bg="#182c38" />
+
+          <Text ff="monospace" fz={12} fw={700} c="#94a3b8">
+            Tick <Text span c="white" fw={800}>0{tick}</Text> / 5
+          </Text>
+
+          <Box w="1px" h={20} bg="#182c38" />
+
+          <Text ff="monospace" fz={11} fw={700} c="#7a8e9e">
+            next tick <Text span c="#20c997" fw={800}>0:{secondsLeft < 10 ? `0${secondsLeft}` : secondsLeft}</Text>
+          </Text>
+        </Group>
       </Group>
 
-      <ScrollArea h="calc(100vh - 21rem)" scrollbarSize={6} type="auto">
+      {/* Status Legend & Category Filters */}
+      <Group justify="space-between" align="center" mb="sm" wrap="nowrap">
+        <Group gap={14} wrap="nowrap">
+          <Text fz={11} fw={700} style={{ color: '#64748b' }}>
+            Status
+          </Text>
+          {STATUSES.map((status) => (
+            <Group key={status} gap={6} wrap="nowrap">
+              <Box
+                style={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: '50%',
+                  backgroundColor: AdStatusColor[status],
+                  boxShadow: `0 0 6px ${AdStatusColor[status]}`,
+                }}
+              />
+              <Text fz={11} fw={600} style={{ color: '#94a3b8' }}>
+                {STATUS_LABEL[status]}
+              </Text>
+            </Group>
+          ))}
+        </Group>
+
+        <Group gap="xs" wrap="nowrap">
+          {AD_SERVICES.map((s) => (
+            <Badge
+              key={s.key}
+              variant="outline"
+              size="sm"
+              radius="sm"
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                borderColor: '#1e293b',
+                color: s.color,
+                textTransform: 'none',
+                fontWeight: 700,
+              }}
+            >
+              ● {s.category.toLowerCase()}
+            </Badge>
+          ))}
+        </Group>
+      </Group>
+
+      {/* Main A&D Scoreboard Table */}
+      <ScrollArea scrollbarSize={6} type="auto">
         <Table
-          horizontalSpacing={6}
-          verticalSpacing={2}
+          horizontalSpacing={8}
+          verticalSpacing={6}
           highlightOnHover
-          style={{ minWidth: 1080 }}
+          style={{ minWidth: 1100, border: '1px solid #142028', borderRadius: '8px', overflow: 'hidden' }}
           styles={{
             th: headCell,
             td: bodyCell,
             tr: { backgroundColor: 'transparent' },
-            table: { backgroundColor: '#101115' },
+            table: { backgroundColor: '#090e12' },
           }}
         >
           <Table.Thead>
             <Table.Tr>
-              <Table.Th rowSpan={2} style={{ width: 58 }}>
+              <Table.Th rowSpan={2} style={{ width: 64, textAlign: 'center' }}>
                 Overall
               </Table.Th>
-              <Table.Th rowSpan={2} style={{ width: 62 }}>
+              <Table.Th rowSpan={2} style={{ width: 68, textAlign: 'center' }}>
                 Ranking
               </Table.Th>
-              <Table.Th rowSpan={2} style={{ minWidth: 190 }}>
+              <Table.Th rowSpan={2} style={{ minWidth: 240 }}>
                 Tim
               </Table.Th>
-              <Table.Th rowSpan={2} style={{ width: 72 }}>
+              <Table.Th rowSpan={2} style={{ width: 84, textAlign: 'right' }}>
                 Captures
               </Table.Th>
-              <Table.Th rowSpan={2} style={{ width: 84 }}>
+              <Table.Th rowSpan={2} style={{ width: 96, textAlign: 'right' }}>
                 Total
               </Table.Th>
               {AD_SERVICES.map((service) => (
@@ -223,15 +324,16 @@ export const ADScoreboard: FC = () => {
                   style={{
                     ...headCell,
                     backgroundColor: service.color,
-                    color: '#0b0c0f',
-                    borderBottom: `1px solid ${service.color}`,
+                    color: '#000000',
+                    borderBottom: `2px solid ${service.color}`,
+                    fontWeight: 900,
                   }}
                 >
-                  <Stack gap={1} align="center">
-                    <Text fz={9} fw={700} style={{ color: 'rgba(11,12,15,0.75)', fontFamily: AdColors.mono }}>
-                      {service.category}
+                  <Stack gap={0} align="center">
+                    <Text fz={9} fw={800} style={{ color: 'rgba(0, 0, 0, 0.65)', fontFamily: AdColors.mono }}>
+                      {service.category.toUpperCase()}
                     </Text>
-                    <Text fz={10} fw={800} style={{ color: '#0b0c0f', fontFamily: AdColors.mono }}>
+                    <Text fz={11} fw={900} style={{ color: '#000000', fontFamily: AdColors.mono }}>
                       {service.key}
                     </Text>
                   </Stack>
@@ -241,8 +343,8 @@ export const ADScoreboard: FC = () => {
             <Table.Tr>
               {AD_SERVICES.map((service) =>
                 SUB_COLUMNS.map((column) => (
-                  <Table.Th key={`${service.key}-${column.key}`} ta="center" style={{ width: 56 }}>
-                    <Icon path={column.icon} size={0.5} color={service.color} />
+                  <Table.Th key={`${service.key}-${column.key}`} ta="center" style={{ width: 62 }}>
+                    <Icon path={column.icon} size={0.55} color={service.color} />
                   </Table.Th>
                 ))
               )}
@@ -251,68 +353,117 @@ export const ADScoreboard: FC = () => {
 
           <Table.Tbody>
             {visible.map((row) => {
-              const team = AD_TEAMS.find((item) => item.rank === row.rank)
+              const isSelected = row.self
 
               return (
                 <Table.Tr
                   key={row.rank}
                   id={row.self ? 'ad-self-row' : undefined}
                   style={{
-                    backgroundColor: row.self ? 'rgba(18, 184, 134, 0.07)' : undefined,
-                    boxShadow: row.self ? `inset 2px 0 0 ${AdColors.primary}` : undefined,
+                    backgroundColor: isSelected ? 'rgba(32, 201, 151, 0.12)' : undefined,
+                    boxShadow: isSelected ? 'inset 3px 0 0 #20c997' : undefined,
                   }}
                 >
-                  <Table.Td style={{ color: AdColors.dim }}>{row.rank}</Table.Td>
-                  <Table.Td>
-                    <Group gap={4} wrap="nowrap">
+                  {/* Overall Rank */}
+                  <Table.Td ta="center">
+                    <Text
+                      ff="monospace"
+                      fz={12}
+                      fw={800}
+                      c={
+                        row.rank === 1
+                          ? '#fab005'
+                          : row.rank === 2
+                          ? '#ced4da'
+                          : row.rank === 3
+                          ? '#e8863f'
+                          : '#64748b'
+                      }
+                    >
+                      {row.rank}
+                    </Text>
+                  </Table.Td>
+
+                  {/* Ranking with Status Dot */}
+                  <Table.Td ta="center">
+                    <Group gap={6} justify="center" wrap="nowrap">
                       <Box
                         style={{
-                          width: 5,
-                          height: 5,
+                          width: 6,
+                          height: 6,
                           borderRadius: '50%',
-                          backgroundColor: team ? AdStatusColor[team.status] : AdColors.dimmer,
+                          backgroundColor: AdStatusColor[row.status] ?? '#20c997',
+                          boxShadow: `0 0 6px ${AdStatusColor[row.status] ?? '#20c997'}`,
                         }}
                       />
-                      <Text ff="monospace" fz={11} style={{ color: AdColors.dim }}>
+                      <Text ff="monospace" fz={12} fw={700} c="#94a3b8">
                         {row.rank}
                       </Text>
                     </Group>
                   </Table.Td>
+
+                  {/* Team Column with School Logo */}
                   <Table.Td>
-                    <Group gap={7} wrap="nowrap">
-                      <TeamDot name={row.name} />
-                      <Text
-                        fz={11}
-                        fw={row.self ? 700 : 500}
-                        truncate
-                        style={{ color: row.self ? AdColors.primaryText : AdColors.text, maxWidth: 180 }}
-                      >
-                        {row.name}
-                      </Text>
+                    <Group gap={8} wrap="nowrap">
+                      <TeamAvatar logo={row.logo} name={row.name} />
+                      <Stack gap={1} style={{ minWidth: 0 }}>
+                        <Text
+                          fz={12}
+                          fw={row.self ? 800 : 700}
+                          truncate
+                          style={{
+                            color: row.self ? '#38d9a9' : '#ffffff',
+                            maxWidth: 210,
+                          }}
+                        >
+                          {row.name}
+                        </Text>
+                        <Text
+                          fz={10}
+                          c="#7a8e9e"
+                          truncate
+                          style={{ maxWidth: 210 }}
+                        >
+                          {row.school}
+                        </Text>
+                      </Stack>
                     </Group>
                   </Table.Td>
-                  <Table.Td style={{ color: AdColors.dim }}>{row.captures.toLocaleString('en-US')}</Table.Td>
-                  <Table.Td>
-                    <Text ff="monospace" fz={11} fw={700} style={{ color: '#fff' }}>
+
+                  {/* Captures */}
+                  <Table.Td ta="right" style={{ color: '#94a3b8', fontWeight: 600 }}>
+                    {row.captures.toLocaleString('en-US')}
+                  </Table.Td>
+
+                  {/* Total Points */}
+                  <Table.Td ta="right">
+                    <Text ff="monospace" fz={12} fw={800} c="#ffffff">
                       {formatPoints(row.total)}
                     </Text>
                   </Table.Td>
 
+                  {/* Service Specific Sub-columns (Attack, Defense, Availability) */}
                   {AD_SERVICES.map((service) => {
                     const cell = row.services[service.key]
 
                     return SUB_COLUMNS.map((column) => {
                       const value = cell[column.key]
+                      const isAttack = column.key === 'attack'
+
                       return (
                         <Table.Td
                           key={`${row.rank}-${service.key}-${column.key}`}
                           ta="right"
                           style={{
-                            backgroundColor: row.self ? 'transparent' : adHeat(value, AD_MAX_CELL),
-                            color: value === 0 ? AdColors.dimmer : AdColors.text,
+                            backgroundColor:
+                              isAttack && value > 0
+                                ? adHeat(value, AD_MAX_CELL)
+                                : 'transparent',
+                            color: value === 0 ? '#475569' : '#e2e8f0',
+                            fontWeight: isAttack ? 700 : 500,
                           }}
                         >
-                          {value < 100 && value > 0 ? value.toFixed(1) : Math.round(value)}
+                          {value < 100 && value > 0 ? value.toFixed(1) : Math.round(value).toLocaleString('en-US')}
                         </Table.Td>
                       )
                     })
@@ -324,8 +475,8 @@ export const ADScoreboard: FC = () => {
         </Table>
       </ScrollArea>
 
-      <Text fz={10} mt={6} style={{ color: AdColors.dimmer }}>
-        Catatan: baris tanpa warna adalah tim kamu. Poin dapat berubah hingga tick berikutnya.
+      <Text fz={11} mt="sm" style={{ color: '#64748b' }}>
+        Catatan: Baris dengan sorotan hijau toska adalah tim Anda (Z3RODAY). Nilai poin terus diperbarui per tick.
       </Text>
     </Box>
   )

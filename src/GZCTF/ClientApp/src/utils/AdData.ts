@@ -8,9 +8,11 @@ export interface AdTeam {
   id: number
   code: string
   name: string
+  school: string
   rank: number
   score: number
   status: AdStatus
+  logo: string
   self?: boolean
 }
 
@@ -44,76 +46,110 @@ export interface AdScoreCell {
 export interface AdScoreRow {
   rank: number
   name: string
+  school: string
   code: string
+  logo: string
   captures: number
   total: number
+  status: AdStatus
   self?: boolean
   services: Record<string, AdScoreCell>
 }
 
-export const SELF_TEAM = 'ZeroDay SMKN 1 Boyolangu'
+export const SELF_TEAM = 'Z3RODAY'
 
-const rawTeams: Array<[string, AdStatus?]> = [
-  ['TOP - EsemkitaJayal'],
-  ['Pungging Jaya'],
-  ['SCS - DUO WIJAYA SIAP MELIBAS C...'],
-  ['kevin melok kon melaku aja sambat'],
-  ['pacman -Sybau'],
-  ['gak_jago_sama_gak_jago_dapetin...'],
-  ['NetRooties'],
-  ['SCS - bingung pas mangan nggih...'],
-  ['Keong Classix'],
-  ['SCS - bingung totong buktikan na...'],
-  ['dil saran jeneng tim'],
-  ['kalau wajar, menang ajaib'],
-  ['BedSec01'],
-  ['Kak kita izin ga ngedit, mau di...'],
-  ['Offset e offside'],
-  ['kata hatinya namanya timnya black...'],
-  ['Kata bu cindy semoga menang'],
-  ['Lancar bin sukses'],
-  ['menghimpun energi mengambil pos...'],
-  ['Kurang tahu pak'],
-  ['Opo yo enak e'],
-  ['lethe cyber 1'],
-  ['SandWorm'],
-  ['Anonymous Tapi Ketahuan'],
-  ['Ultraman Cosmos'],
-  ['Klingkang Studio'],
-  ['Zahwa'],
-  ['Kepanjen Cyber'],
-  ['PEOCOT CYBER'],
-  ['Wimbeha'],
-  ['ID_SMART'],
-  ['SMASMA N1 AMBMO'],
-  ['SMAPA 2', 'Mumble'],
-  ['El Elxtron AZYZX'],
-  ['Es Teh Jumbo'],
-  ['SPPG SMASNA'],
-  ['VALOVALO'],
-  [SELF_TEAM, 'Offline'],
-  ['GARDA DIGITAL'],
-  ['PPLG HENGKER'],
+export const FINALIST_OFFICIAL_TEAMS: Array<{
+  name: string
+  school: string
+  score: number
+  logo: string
+  status?: AdStatus
+  self?: boolean
+}> = [
+  {
+    name: 'United Shell-SCC',
+    school: 'SMK NEGERI 7 SEMARANG',
+    score: 59087.1,
+    logo: '/logos/smkn7-semarang.png',
+    status: 'Operational',
+  },
+  {
+    name: 'rootsanctum',
+    school: 'SMK NEGERI 7 SEMARANG',
+    score: 56274.3,
+    logo: '/logos/smkn7-semarang.png',
+    status: 'Operational',
+  },
+  {
+    name: 'WilSec - Apa aja',
+    school: 'SMK NEGERI 1 JAKARTA',
+    score: 52228.6,
+    logo: '/logos/smkn1-jakarta.png',
+    status: 'Operational',
+  },
+  {
+    name: 'Maaf TKA Pilih CTF',
+    school: 'MA NEGERI 3 JEMBER',
+    score: 48517.1,
+    logo: '/logos/man3-jember.png',
+    status: 'Operational',
+  },
+  {
+    name: 'WilSec - BOEDOET 47',
+    school: 'SMK NEGERI 1 JAKARTA',
+    score: 48381.4,
+    logo: '/logos/smkn1-jakarta.png',
+    status: 'Operational',
+  },
+  {
+    name: 'kata magfi "bebas"',
+    school: 'SMK NEGERI 21 JAKARTA',
+    score: 47410.0,
+    logo: '/logos/smkn21-jakarta.png',
+    status: 'Operational',
+  },
+  {
+    name: 'Z3RODAY',
+    school: 'SMK NEGERI 1 BOYOLANGU',
+    score: 47177.1,
+    logo: '/logos/smkn1-boyolangu.png',
+    status: 'Operational',
+    self: true,
+  },
+  {
+    name: 'Gangantua',
+    school: 'SMK NEGERI 3 TUBAN',
+    score: 47150.0,
+    logo: '/logos/smkn3-tuban.png',
+    status: 'Mumble',
+  },
+  {
+    name: 'WilSec - Panitia',
+    school: 'SMK NEGERI 1 JAKARTA',
+    score: 44544.3,
+    logo: '/logos/smkn1-jakarta.png',
+    status: 'Operational',
+  },
+  {
+    name: 'Duo Perncari Flag',
+    school: 'SMKS MASKUMAMBANG 1 DUKUN',
+    score: 44145.7,
+    logo: '/logos/smk-maskumambang-dukun.png',
+    status: 'Operational',
+  },
 ]
 
-// Scores for the first ten teams come from the design reference; the rest are
-// generated so the ranking stays stable between renders.
-const topScores = [22942.6, 22825.2, 18965.6, 18616.4, 18221.2, 16375.6, 14816.5, 14314.5, 10710.0, 9761.0]
-
-export const AD_TEAMS: AdTeam[] = rawTeams.map(([name, status], idx) => {
-  const rank = idx + 1
-  const score = topScores[idx] ?? Math.max(1200, 7400 - (idx - 10) * 96 - (idx % 7) * 37)
-
-  return {
-    id: idx + 1,
-    code: `T${401 + idx}`,
-    name,
-    rank,
-    score,
-    status: status ?? (rank > 12 && rank % 6 === 0 ? 'Recovering' : 'Operational'),
-    self: name === SELF_TEAM,
-  }
-})
+export const AD_TEAMS: AdTeam[] = FINALIST_OFFICIAL_TEAMS.map((t, idx) => ({
+  id: idx + 1,
+  code: `T${401 + idx}`,
+  name: t.name,
+  school: t.school,
+  rank: idx + 1,
+  score: t.score,
+  status: t.status ?? 'Operational',
+  logo: t.logo,
+  self: t.self,
+}))
 
 export const AD_TEAMS_BY_RANK = [...AD_TEAMS].sort((a, b) => a.rank - b.rank)
 
@@ -160,11 +196,11 @@ export const AD_SERVICES: AdService[] = [
 ]
 
 export const AD_ACTIVITY: AdActivity[] = [
-  { time: '12:31:27', service: 'simple-pwn', text: `${SELF_TEAM} → PPLG HENGKER`, color: '#fab005' },
-  { time: '12:31:22', service: 'simple-pwn', text: `${SELF_TEAM} → Keong Classix`, color: '#fab005' },
-  { time: '12:31:11', service: 'simple-pwn', text: `${SELF_TEAM} → Opo yo enak e`, color: '#fab005' },
-  { time: '12:30:58', service: 'simple-crypto', text: 'pacman -Sybau → TOP - EsemkitaJayal', color: '#fa5252' },
-  { time: '12:30:41', service: 'simple-web', text: 'Offset e offside → Wimbeha', color: '#4dabf7' },
+  { time: '15:53:45', service: 'simple-pwn', text: 'Z3RODAY → WilSec - BOEDOET 47 (Flag captured!)', color: '#fab005' },
+  { time: '15:53:45', service: 'simple-crypto', text: 'Offset e offside → SMAPa 2 (Flag captured!)', color: '#fab005' },
+  { time: '15:53:45', service: 'simple-crypto', text: 'Gangantua - MUMBLE', color: '#ff922b' },
+  { time: '15:53:44', service: 'simple-web', text: 'United Shell-SCC → WilSec - Apa aja (Flag captured!)', color: '#fa5252' },
+  { time: '15:53:40', service: 'simple-pwn', text: 'rootsanctum → Maaf TKA Pilih CTF (Flag captured!)', color: '#4dabf7' },
 ]
 
 const seeded = (n: number, salt: number) => {
@@ -189,9 +225,12 @@ const buildCells = (rank: number, base: number) => {
 export const AD_SCOREBOARD: AdScoreRow[] = AD_TEAMS_BY_RANK.map((team) => ({
   rank: team.rank,
   name: team.name,
+  school: team.school,
   code: team.code,
+  logo: team.logo,
   captures: Math.round(1400 + seeded(team.rank, 3) * 900),
   total: team.score,
+  status: team.status,
   self: team.self,
   services: buildCells(team.rank, team.score),
 }))
