@@ -3,96 +3,243 @@
 
 const port = 8080
 
+const FINALIST_TEAMS_DATA = [
+  {
+    id: 1,
+    name: 'United Shell-SCC',
+    school: 'SMK NEGERI 7 SEMARANG',
+    score: 59087.1,
+    rank: 1,
+    logo: '/logos/smkn7-semarang.png',
+    status: 'Operational',
+    members: [
+      { id: '101', userName: 'captain_shell', captain: true },
+      { id: '102', userName: 'member_shell_1', captain: false },
+      { id: '103', userName: 'member_shell_2', captain: false },
+    ],
+  },
+  {
+    id: 2,
+    name: 'rootsanctum',
+    school: 'SMK NEGERI 7 SEMARANG',
+    score: 56274.3,
+    rank: 2,
+    logo: '/logos/smkn7-semarang.png',
+    status: 'Operational',
+    members: [
+      { id: '201', userName: 'root_lead', captain: true },
+      { id: '202', userName: 'sanctum_pwn', captain: false },
+      { id: '203', userName: 'sanctum_rev', captain: false },
+    ],
+  },
+  {
+    id: 3,
+    name: 'WilSec - Apa aja',
+    school: 'SMK NEGERI 1 JAKARTA',
+    score: 52228.6,
+    rank: 3,
+    logo: '/logos/smkn1-jakarta.png',
+    status: 'Operational',
+    members: [
+      { id: '301', userName: 'wilsec_lead', captain: true },
+      { id: '302', userName: 'wilsec_web', captain: false },
+      { id: '303', userName: 'wilsec_crypto', captain: false },
+    ],
+  },
+  {
+    id: 4,
+    name: 'Maaf TKA Pilih CTF',
+    school: 'MA NEGERI 3 JEMBER',
+    score: 48517.1,
+    rank: 4,
+    logo: '/logos/man3-jember.png',
+    status: 'Operational',
+    members: [
+      { id: '401', userName: 'man3_captain', captain: true },
+      { id: '402', userName: 'man3_sec1', captain: false },
+      { id: '403', userName: 'man3_sec2', captain: false },
+    ],
+  },
+  {
+    id: 5,
+    name: 'WilSec - BOEDOET 47',
+    school: 'SMK NEGERI 1 JAKARTA',
+    score: 48381.4,
+    rank: 5,
+    logo: '/logos/smkn1-jakarta.png',
+    status: 'Operational',
+    members: [
+      { id: '501', userName: 'boedoet_lead', captain: true },
+      { id: '502', userName: 'boedoet_47_1', captain: false },
+      { id: '503', userName: 'boedoet_47_2', captain: false },
+    ],
+  },
+  {
+    id: 6,
+    name: 'kata magfi "bebas"',
+    school: 'SMK NEGERI 21 JAKARTA',
+    score: 47410.0,
+    rank: 6,
+    logo: '/logos/smkn21-jakarta.png',
+    status: 'Operational',
+    members: [
+      { id: '601', userName: 'magfi_lead', captain: true },
+      { id: '602', userName: 'smkn21_mem1', captain: false },
+      { id: '603', userName: 'smkn21_mem2', captain: false },
+    ],
+  },
+  {
+    id: 7,
+    name: 'Z3RODAY',
+    school: 'SMK NEGERI 1 BOYOLANGU',
+    score: 47177.1,
+    rank: 7,
+    logo: '/logos/smkn1-boyolangu.png',
+    status: 'Operational',
+    members: [
+      { id: '701', userName: 'rootkids', captain: true },
+      { id: '702', userName: 'boyolangu_pwn', captain: false },
+      { id: '703', userName: 'boyolangu_web', captain: false },
+    ],
+  },
+  {
+    id: 8,
+    name: 'Gangantua',
+    school: 'SMK NEGERI 3 TUBAN',
+    score: 47150.0,
+    rank: 8,
+    logo: '/logos/smkn3-tuban.png',
+    status: 'Mumble',
+    members: [
+      { id: '801', userName: 'gangantua_lead', captain: true },
+      { id: '802', userName: 'tuban_3_mem1', captain: false },
+      { id: '803', userName: 'tuban_3_mem2', captain: false },
+    ],
+  },
+  {
+    id: 9,
+    name: 'WilSec - Panitia',
+    school: 'SMK NEGERI 1 JAKARTA',
+    score: 44544.3,
+    rank: 9,
+    logo: '/logos/smkn1-jakarta.png',
+    status: 'Operational',
+    members: [
+      { id: '901', userName: 'wilsec_panitia_lead', captain: true },
+      { id: '902', userName: 'wilsec_panitia_1', captain: false },
+      { id: '903', userName: 'wilsec_panitia_2', captain: false },
+    ],
+  },
+  {
+    id: 10,
+    name: 'Duo Perncari Flag',
+    school: 'SMKS MASKUMAMBANG 1 DUKUN',
+    score: 44145.7,
+    rank: 10,
+    logo: '/logos/smk-maskumambang-dukun.png',
+    status: 'Operational',
+    members: [
+      { id: '1001', userName: 'duo_pencari_lead', captain: true },
+      { id: '1002', userName: 'dukun_gresik_mem', captain: false },
+    ],
+  },
+]
+
 const db = {
   config: {
     title: 'JCC::CTF',
-    description: 'Jatim Cyber Security Competition - Attack & Defense',
-    footer: 'JCC::CTF Attack & Defense Platform',
+    description: 'Cybersecurity IONIC 2026 - Attack & Defense',
+    footer: 'Cybersecurity IONIC 2026 Platform',
     favicon: '/favicon.webp',
     portMapping: 'Direct',
     enableRegistration: true,
     languages: ['id-ID', 'en-US'],
   },
   user: {
-    userId: 'ZeroDay SMKN 1 Boyolangu',
-    userName: 'ZeroDay',
-    email: 'zeroday@student.smk.id',
-    role: 'User', // Regular participant, NOT Admin
-    avatar: null,
-    bio: 'Cyber Security Team SMKN 1 Boyolangu',
+    userId: 'Z3RODAY',
+    userName: 'rootkids',
+    email: 'z3roday@smkn1boyolangu.sch.id',
+    role: 'User',
+    avatar: '/logos/smkn1-boyolangu.png',
+    bio: 'Cyber Security Team SMK NEGERI 1 BOYOLANGU',
     token: 'ad_KqcDuW9H-_HfhXtkdCI5TXLx9AQVfqIM7zUf-w8mjRE',
   },
   posts: [
     {
       id: '1',
-      title: 'Selamat Datang di Babak Final JCC CTF Attack & Defense',
-      summary: 'Perhatikan jadwal tick, konfigurasi VPN, dan submission token sebelum Round 1 dimulai.',
-      content: '# Panduan Pelaksanaan A&D\n\n1. Pastikan WireGuard VPN terhubung.\n2. Lakukan patch layanan sebelum first attack mendarat.\n3. Jangan menghapus flag historis untuk menjaga poin SLA (Availability).\n\nSelamat bertanding!',
+      title: 'Selamat Kepada 10 Finalis Cybersecurity IONIC 2026',
+      summary: 'Daftar 10 tim finalis resmi lolos ke babak Attack & Defense IONIC 2026.',
+      content: `# Babak Final Attack & Defense Cybersecurity IONIC 2026
+
+Selamat kepada 10 tim terbaik yang telah lolos ke babak Final:
+1. **United Shell-SCC** - SMK NEGERI 7 SEMARANG
+2. **rootsanctum** - SMK NEGERI 7 SEMARANG
+3. **WilSec - Apa aja** - SMK NEGERI 1 JAKARTA
+4. **Maaf TKA Pilih CTF** - MA NEGERI 3 JEMBER
+5. **WilSec - BOEDOET 47** - SMK NEGERI 1 JAKARTA
+6. **kata magfi "bebas"** - SMK NEGERI 21 JAKARTA
+7. **Z3RODAY** - SMK NEGERI 1 BOYOLANGU
+8. **Gangantua** - SMK NEGERI 3 TUBAN
+9. **WilSec - Panitia** - SMK NEGERI 1 JAKARTA
+10. **Duo Perncari Flag** - SMKS MASKUMAMBANG 1 DUKUN
+
+Pastikan konfigurasi WireGuard VPN dan Token API sudah siap sebelum Round 1 dimulai!`,
       isPinned: true,
       time: Date.now() - 3600000,
-      authorName: 'JCC Committee',
+      authorName: 'Panitia IONIC 2026',
       authorAvatar: null,
-      tags: ['A&D', 'Official'],
+      tags: ['A&D', 'Finalis', 'IONIC 2026'],
     },
     {
       id: '2',
-      title: 'Pemberitahuan: Layanan ledger-forge telah dirilis',
-      summary: 'Layanan baru simple-pwn ledger-forge telah aktif dan siap diserang/dipertahankan.',
-      content: 'Layanan ledger-forge dapat diakses melalui IP container masing-masing tim.',
+      title: 'Jadwal Tick dan Ketentuan SLA Availability Layanan',
+      summary: 'Setiap ronde berlangsung selama 5 tick (1 tick = 60 detik). Periksa status cek layanan tim Anda.',
+      content: 'Layanan yang dipertahankan meliputi `simple-crypto`, `simple-pwn`, dan `simple-web`. Jagalah integritas flag agar poin SLA tetap maksimal.',
       isPinned: false,
       time: Date.now() - 7200000,
-      authorName: 'JCC Committee',
+      authorName: 'Panitia IONIC 2026',
       authorAvatar: null,
-      tags: ['Challenge', 'Pwn'],
+      tags: ['Rules', 'A&D'],
     },
   ],
-  teams: [
-    {
-      id: 10,
-      name: 'ZeroDay SMKN 1 Boyolangu',
-      bio: 'Cyber Security Team SMKN 1 Boyolangu',
-      locked: false,
-      members: [
-        { id: '1', userName: 'rootkids', captain: true },
-        { id: '2', userName: 'member_1', captain: false },
-        { id: '3', userName: 'member_2', captain: false },
-      ],
-    },
-  ],
+  teams: FINALIST_TEAMS_DATA.map((t) => ({
+    id: t.id,
+    name: t.name,
+    bio: `${t.school} • Nilai Akhir: ${t.score.toLocaleString('id-ID')} pts`,
+    avatar: t.logo,
+    locked: false,
+    members: t.members,
+  })),
   recentGames: [
     {
       id: 5,
-      title: 'Warm Up Final',
-      summary: 'Attack & Defense Warmup Stage',
+      title: 'Final Cybersecurity IONIC 2026',
+      summary: 'Babak Final Attack & Defense IONIC 2026',
       poster: null,
-      limit: 0,
+      limit: 3,
       start: Date.now() - 3600000,
       end: Date.now() + 6 * 3600000 + 39 * 60000,
     },
   ],
   game: {
     id: 5,
-    title: 'Warm Up Final',
-    summary: 'Attack & Defense Warmup Stage',
-    content: 'Warmup final round for JCC Attack & Defense',
+    title: 'Final Cybersecurity IONIC 2026',
+    summary: 'Babak Final Attack & Defense IONIC 2026',
+    content: '10 Tim Finalis Bertanding dalam Mode Attack & Defense Realtime.',
     start: Date.now() - 3600000,
     end: Date.now() + 6 * 3600000 + 39 * 60000,
     status: 'Accepted',
     practiceMode: true,
-    adEnabled: true,
     challengesCount: 3,
     divisions: [],
   },
   teamInfo: {
-    teamToken: 'ad_KqcDuW9H-_HfhXtkdCI5TXLx9AQVfqIM7zUf-w8mjRE',
     rank: {
-      rank: 10,
-      name: 'ZeroDay SMKN 1 Boyolangu',
-      score: 9575.2,
+      rank: 7,
+      name: 'Z3RODAY',
+      score: 47177.1,
       solvedCount: 0,
-      divisionId: null,
-      solvedChallenges: [],
-      avatar: '',
+      avatar: '/logos/smkn1-boyolangu.png',
     },
     challengeCount: 3,
     challenges: {
@@ -129,15 +276,13 @@ const db = {
     {
       id: 1,
       type: 'Normal',
-      values: ['Challenge baru [ledger-forge] telah dirilis.'],
-      time: new Date(Date.now() - 1800000).toISOString(),
+      values: ['Layanan [ledger-forge] telah dirilis dan siap diserang.'],
       publishTime: new Date(Date.now() - 1800000).toISOString(),
     },
     {
       id: 2,
       type: 'Normal',
-      values: ['Round 1 akan segera dimulai dalam 10 menit.'],
-      time: new Date(Date.now() - 3600000).toISOString(),
+      values: ['Round 26 sedang berlangsung. Perhatikan status SLA service Anda.'],
       publishTime: new Date(Date.now() - 3600000).toISOString(),
     },
   ],
@@ -206,16 +351,16 @@ Bun.serve({
       return Response.json(db.notices, { headers })
     }
 
-    // Scoreboard
+    // Scoreboard (10 Finalis)
     if (path.includes('/scoreboard')) {
       return Response.json(
-        [
-          { rank: 1, name: 'pacman -Sybau', score: 22851.2, solved: 14 },
-          { rank: 2, name: 'TOP - EsemkitaJayal', score: 22527.6, solved: 13 },
-          { rank: 3, name: 'Offset e offside', score: 18434.2, solved: 11 },
-          { rank: 4, name: 'lethe cyber 1', score: 18118.4, solved: 10 },
-          { rank: 10, name: 'ZeroDay SMKN 1 Boyolangu', score: 9575.2, solved: 0 },
-        ],
+        FINALIST_TEAMS_DATA.map((t) => ({
+          rank: t.rank,
+          name: t.name,
+          score: t.score,
+          solved: 14 - t.rank,
+          avatar: t.logo,
+        })),
         { headers }
       )
     }
@@ -224,17 +369,20 @@ Bun.serve({
     if (path.includes('/targets')) {
       return Response.json(
         {
-          currentRound: 7,
+          currentRound: 26,
           challenges: [
             {
               challengeId: 76,
               title: 'simple-pwn',
               tickSeconds: 60,
-              teams: [
-                { participationId: 2, teamName: 'pacman -Sybau', division: null, ip: '172.0.9.4', port: 80, lastCheckStatus: 'Ok' },
-                { participationId: 3, teamName: 'TOP - EsemkitaJayal', division: null, ip: '172.0.9.5', port: 80, lastCheckStatus: 'Ok' },
-                { participationId: 4, teamName: 'Offset e offside', division: null, ip: '172.0.9.6', port: 80, lastCheckStatus: 'Mumble' },
-              ],
+              teams: FINALIST_TEAMS_DATA.filter((t) => t.id !== 7).map((t, idx) => ({
+                participationId: t.id,
+                teamName: t.name,
+                division: null,
+                ip: `172.0.9.${idx + 2}`,
+                port: 80,
+                lastCheckStatus: t.status === 'Operational' ? 'Ok' : 'Mumble',
+              })),
             },
           ],
         },
@@ -248,9 +396,7 @@ Bun.serve({
         {
           acceptedCount: 1,
           totalPoints: 10.0,
-          results: [
-            { flag: 'flag{captured_from_target}', status: 'accepted', points: 10.0 },
-          ],
+          results: [{ flag: 'flag{captured_from_target}', status: 'accepted', points: 10.0 }],
         },
         { headers }
       )
