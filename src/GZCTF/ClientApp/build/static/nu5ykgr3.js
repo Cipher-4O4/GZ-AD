@@ -1,9 +1,0 @@
-/* The GZ::CTF Project @unknown
- * 
- * License   : GNU Affero General Public License v3.0 (Core)
- * License   : LicenseRef-GZCTF-Restricted (Restricted components)
- * Commit    : Unofficial build version
- * Build     : 2026-11-05T07:32:01.028Z
- * Copyright (C) 2022-2026 GZTimeWalker. All Rights Reserved.
- */
-import{nt as e,q as t,r as n,y as r}from"./lz9snzk0.js";import{S as i,V as a,ft as o,z as s}from"./n1rbp2ru.js";import{C as c,j as l,t as u}from"./jq2cvzk3.js";import{t as d}from"./peexjy2g.js";import{i as f}from"./kdjbrh4q.js";import{p}from"./index.ew8dwbj0.js";import{t as m}from"./dya86yht.js";var h=u(),g=e(t(),1),_=r(),v=()=>{let e=a(),t=s(),r=new URLSearchParams(t.search),u=r.get(`token`),v=r.get(`email`),[y,b]=(0,g.useState)(!1),{t:x}=o(),S=window.atob(v??``);return d(x(`account.title.confirm`)),(0,_.jsx)(m,{onSubmit:async t=>{if(t.preventDefault(),!u||!v){f({color:`red`,title:x(`account.notification.confirm.failed`),message:x(`common.error.param_missing`),icon:(0,_.jsx)(h.Icon,{path:l,size:1})});return}b(!0);try{await i.account.accountMailChangeConfirm({token:u,email:v}),f({color:`teal`,title:x(`account.notification.confirm.success`),message:S,icon:(0,_.jsx)(h.Icon,{path:c,size:1})}),e(`/`)}catch{f({color:`red`,title:x(`account.notification.confirm.failed`),message:x(`common.error.param_error`),icon:(0,_.jsx)(h.Icon,{path:l,size:1})})}finally{b(!1)}},children:v&&u?(0,_.jsxs)(_.Fragment,{children:[(0,_.jsx)(n,{size:`md`,fw:500,children:x(`account.content.welcome`,{decodeEmail:S})}),(0,_.jsx)(n,{size:`md`,fw:500,children:x(`account.content.confirm.message`)}),(0,_.jsx)(p,{mt:`lg`,type:`submit`,w:`50%`,disabled:y,children:x(`account.button.confirm_email`)})]}):(0,_.jsxs)(_.Fragment,{children:[(0,_.jsx)(n,{size:`md`,fw:500,children:x(`account.content.link_invalid`)}),(0,_.jsx)(n,{size:`md`,fw:500,children:x(`account.content.link_check`)})]})})};export{v as default};

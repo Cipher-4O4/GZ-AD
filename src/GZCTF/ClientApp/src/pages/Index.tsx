@@ -57,7 +57,8 @@ const Home: FC = () => {
   const isMobile = useIsMobile(900)
   const { height } = useViewportSize()
 
-  const showGames = isMobile ? recentGames : recentGames?.slice(0, Math.ceil((height - 300) / 240))
+  const gameList = Array.isArray(recentGames) ? recentGames : []
+  const showGames = isMobile ? gameList : gameList.slice(0, Math.ceil((height - 300) / 240))
 
   usePageTitle()
 

@@ -41,7 +41,7 @@ const Games: FC = () => {
   const { colorScheme } = useMantineColorScheme()
 
   const recents =
-    recentGames?.map((game) => {
+    (Array.isArray(recentGames) ? recentGames : []).map((game) => {
       const { startTime, endTime, status } = getGameStatus(game)
       const color = GameColorMap.get(status) ?? 'gray'
       const colorHex = theme.colors[color][colorScheme === 'dark' ? 9 : 4]

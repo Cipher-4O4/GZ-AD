@@ -747,22 +747,46 @@ Bun.serve({
       )
     }
 
-    if (path.match(/\/api\/game\/\d+$/) || path.includes('/api/game/recent') || path === '/api/game') {
+    const singleGame = {
+      id: 5,
+      title: 'Final Cybersecurity IONIC 2026',
+      summary: 'Babak Final Attack & Defense IONIC 2026',
+      content: '10 Tim Finalis Bertanding dalam Mode Attack & Defense Realtime.',
+      start: Date.now() - 3600000,
+      end: Date.now() + 6 * 3600000,
+      status: 'Accepted',
+      practiceMode: true,
+      challengesCount: 4,
+      divisions: [],
+    }
+
+    if (path.includes('/api/game/recent')) {
+      return Response.json([singleGame], { headers })
+    }
+
+    if (path === '/api/game' || path === '/api/game/') {
+      return Response.json({ total: 1, data: [singleGame] }, { headers })
+    }
+
+    if (path.includes('/posts') || path.includes('/post')) {
       return Response.json(
-        {
-          id: 5,
-          title: 'Final Cybersecurity IONIC 2026',
-          summary: 'Babak Final Attack & Defense IONIC 2026',
-          content: '10 Tim Finalis Bertanding dalam Mode Attack & Defense Realtime.',
-          start: Date.now() - 3600000,
-          end: Date.now() + 6 * 3600000,
-          status: 'Accepted',
-          practiceMode: true,
-          challengesCount: 4,
-          divisions: [],
-        },
+        [
+          {
+            id: 1,
+            title: 'Selamat Datang di Final Attack & Defense IONIC 2026',
+            summary: 'Kompetisi babak Final Cybersecurity IONIC 2026 resmi dimulai!',
+            content: '10 Tim Finalis bertanding secara realtime mempertahankan service dan mengeksploitasi celah lawan. Perhatikan timer tick dan round!',
+            time: new Date().toISOString(),
+            isPinned: true,
+            author: 'Panitia IONIC 2026',
+          },
+        ],
         { headers }
       )
+    }
+
+    if (path.match(/\/api\/game\/\d+$/)) {
+      return Response.json(singleGame, { headers })
     }
 
     // ==========================================
