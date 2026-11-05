@@ -61,13 +61,13 @@ export const FINALIST_TEAMS: TeamNode[] = [
     status: 'Operational',
     teamCode: 'T401',
     logo: '/logos/smkn7-semarang.png',
-    islandName: 'Shell Bastion',
+    islandName: 'Northern Bastion',
     sector: 'SECTOR-01',
-    x: 14,
-    y: 22,
+    x: 17.2,
+    y: 25.0,
     color: '#38d9a9',
-    islandPath: 'M -52,-18 C -58,-48 -18,-62 14,-54 C 48,-46 64,-18 56,18 C 48,50 16,62 -18,56 C -48,50 -46,12 -52,-18 Z',
-    reefPath: 'M -65,-22 C -72,-60 -22,-78 18,-68 C 60,-58 80,-22 70,22 C 60,62 20,78 -22,70 C -60,62 -58,15 -65,-22 Z',
+    islandPath: '',
+    reefPath: '',
   },
   {
     id: '2',
@@ -78,13 +78,13 @@ export const FINALIST_TEAMS: TeamNode[] = [
     status: 'Operational',
     teamCode: 'T402',
     logo: '/logos/smkn7-semarang.png',
-    islandName: 'Sanctum Isle',
+    islandName: 'Sanctum Peninsula',
     sector: 'SECTOR-02',
-    x: 32,
-    y: 32,
+    x: 40.0,
+    y: 26.5,
     color: '#20c997',
-    islandPath: 'M -46,-24 C -54,-52 -10,-60 24,-52 C 58,-44 62,-8 50,26 C 38,60 -2,64 -32,52 C -62,40 -38,4 -46,-24 Z',
-    reefPath: 'M -58,-30 C -68,-65 -12,-75 30,-65 C 72,-55 78,-10 62,32 C 48,75 -2,80 -40,65 C -78,50 -48,5 -58,-30 Z',
+    islandPath: '',
+    reefPath: '',
   },
   {
     id: '3',
@@ -95,13 +95,13 @@ export const FINALIST_TEAMS: TeamNode[] = [
     status: 'Operational',
     teamCode: 'T403',
     logo: '/logos/smkn1-jakarta.png',
-    islandName: 'WilSec Atoll',
+    islandName: 'Circular Ring Atoll',
     sector: 'SECTOR-03',
-    x: 50,
-    y: 20,
+    x: 63.7,
+    y: 25.3,
     color: '#fab005',
-    islandPath: 'M -56,-14 C -60,-44 -26,-58 6,-56 C 38,-54 58,-28 54,12 C 50,52 24,62 -12,58 C -48,54 -52,16 -56,-14 Z',
-    reefPath: 'M -70,-18 C -75,-55 -32,-72 8,-70 C 48,-68 72,-35 68,15 C 62,65 30,78 -15,72 C -60,68 -65,20 -70,-18 Z',
+    islandPath: '',
+    reefPath: '',
   },
   {
     id: '4',
@@ -112,13 +112,13 @@ export const FINALIST_TEAMS: TeamNode[] = [
     status: 'Operational',
     teamCode: 'T404',
     logo: '/logos/man3-jember.png',
-    islandName: 'Jember Citadel',
+    islandName: 'Jember Highland',
     sector: 'SECTOR-04',
-    x: 68,
-    y: 30,
+    x: 83.3,
+    y: 27.4,
     color: '#ff922b',
-    islandPath: 'M -48,-28 C -52,-56 -12,-62 20,-50 C 52,-38 60,-4 52,28 C 44,60 4,64 -28,54 C -60,44 -44,0 -48,-28 Z',
-    reefPath: 'M -60,-35 C -65,-70 -15,-78 25,-62 C 65,-48 75,-5 65,35 C 55,75 5,80 -35,68 C -75,55 -55,0 -60,-35 Z',
+    islandPath: '',
+    reefPath: '',
   },
   {
     id: '5',
@@ -129,13 +129,13 @@ export const FINALIST_TEAMS: TeamNode[] = [
     status: 'Operational',
     teamCode: 'T405',
     logo: '/logos/smkn1-jakarta.png',
-    islandName: 'Boedoet Outpost',
+    islandName: 'Crescent Isle',
     sector: 'SECTOR-05',
-    x: 86,
-    y: 22,
+    x: 18.8,
+    y: 48.7,
     color: '#ff6b6b',
-    islandPath: 'M -50,-16 C -54,-48 -16,-60 18,-52 C 52,-44 60,-12 52,22 C 44,56 12,62 -22,54 C -56,46 -46,16 -50,-16 Z',
-    reefPath: 'M -62,-20 C -68,-60 -20,-75 22,-65 C 65,-55 75,-15 65,28 C 55,70 15,78 -28,68 C -70,58 -58,20 -62,-20 Z',
+    islandPath: '',
+    reefPath: '',
   },
   {
     id: '6',
@@ -146,13 +146,13 @@ export const FINALIST_TEAMS: TeamNode[] = [
     status: 'Operational',
     teamCode: 'T406',
     logo: '/logos/smkn21-jakarta.png',
-    islandName: 'Magfi Archipelago',
+    islandName: 'Star Citadel',
     sector: 'SECTOR-06',
-    x: 14,
-    y: 72,
+    x: 49.2,
+    y: 51.1,
     color: '#da77f2',
-    islandPath: 'M -54,-12 C -58,-44 -20,-56 12,-52 C 44,-48 58,-22 52,16 C 46,54 18,60 -16,56 C -50,52 -50,20 -54,-12 Z',
-    reefPath: 'M -68,-15 C -72,-55 -25,-70 15,-65 C 55,-60 72,-28 65,20 C 58,68 22,75 -20,70 C -62,65 -62,25 -68,-15 Z',
+    islandPath: '',
+    reefPath: '',
   },
   {
     id: '7',
@@ -163,13 +163,13 @@ export const FINALIST_TEAMS: TeamNode[] = [
     status: 'Operational',
     teamCode: 'T407',
     logo: '/logos/smkn1-boyolangu.png',
-    islandName: 'Z3RO Fortress',
+    islandName: 'Z3RO Archipelago',
     sector: 'SECTOR-07',
-    x: 32,
-    y: 64,
+    x: 70.1,
+    y: 57.1,
     color: '#20c997',
-    islandPath: 'M -52,-22 C -60,-50 -14,-62 20,-54 C 54,-46 62,-10 52,24 C 42,58 2,64 -26,56 C -54,48 -44,6 -52,-22 Z',
-    reefPath: 'M -65,-28 C -75,-62 -18,-78 25,-68 C 68,-58 78,-12 65,30 C 52,72 2,80 -32,70 C -68,60 -55,8 -65,-28 Z',
+    islandPath: '',
+    reefPath: '',
   },
   {
     id: '8',
@@ -180,13 +180,13 @@ export const FINALIST_TEAMS: TeamNode[] = [
     status: 'Mumble',
     teamCode: 'T408',
     logo: '/logos/smkn3-tuban.png',
-    islandName: 'Gargantua Rock',
+    islandName: 'Gargantua Fjord',
     sector: 'SECTOR-08',
-    x: 50,
-    y: 76,
+    x: 22.1,
+    y: 77.1,
     color: '#fcc419',
-    islandPath: 'M -48,-18 C -54,-48 -18,-58 16,-52 C 50,-46 58,-14 52,20 C 46,54 10,60 -20,54 C -50,48 -42,12 -48,-18 Z',
-    reefPath: 'M -60,-22 C -68,-60 -22,-72 20,-65 C 62,-58 72,-18 65,25 C 58,68 12,75 -25,68 C -62,60 -52,15 -60,-22 Z',
+    islandPath: '',
+    reefPath: '',
   },
   {
     id: '9',
@@ -197,13 +197,13 @@ export const FINALIST_TEAMS: TeamNode[] = [
     status: 'Operational',
     teamCode: 'T409',
     logo: '/logos/smkn1-jakarta.png',
-    islandName: 'WilSec Command',
+    islandName: 'Linear Reef Base',
     sector: 'SECTOR-09',
-    x: 68,
-    y: 66,
+    x: 56.8,
+    y: 82.0,
     color: '#ff6b6b',
-    islandPath: 'M -52,-20 C -58,-50 -16,-60 18,-54 C 52,-48 60,-16 52,18 C 44,52 8,62 -22,54 C -52,46 -46,10 -52,-20 Z',
-    reefPath: 'M -65,-25 C -72,-62 -20,-75 22,-68 C 65,-60 75,-20 65,22 C 55,65 10,78 -28,68 C -65,58 -58,12 -65,-25 Z',
+    islandPath: '',
+    reefPath: '',
   },
   {
     id: '10',
@@ -214,13 +214,13 @@ export const FINALIST_TEAMS: TeamNode[] = [
     status: 'Operational',
     teamCode: 'T410',
     logo: '/logos/smk-maskumambang-dukun.png',
-    islandName: 'Maskumambang Isle',
+    islandName: 'Eastern Atoll',
     sector: 'SECTOR-10',
-    x: 86,
-    y: 74,
+    x: 86.6,
+    y: 73.6,
     color: '#339af0',
-    islandPath: 'M -50,-16 C -54,-48 -14,-58 18,-52 C 50,-46 58,-16 52,18 C 46,52 14,60 -18,54 C -50,48 -46,16 -50,-16 Z',
-    reefPath: 'M -62,-20 C -68,-60 -18,-72 22,-65 C 62,-58 72,-20 65,22 C 58,65 18,75 -22,68 C -62,60 -58,20 -62,-20 Z',
+    islandPath: '',
+    reefPath: '',
   },
 ]
 
@@ -302,14 +302,14 @@ export const AttackMap: FC = () => {
       const victim = FINALIST_TEAMS[victimIdx]
 
       // Parabolic ballistic trajectory arc calculation
-      const x1 = attacker.x * 10
-      const y1 = attacker.y * 6.5
-      const x2 = victim.x * 10
-      const y2 = victim.y * 6.5
+      const x1 = attacker.x * 10.24
+      const y1 = attacker.y * 5.71
+      const x2 = victim.x * 10.24
+      const y2 = victim.y * 5.71
 
       const midX = (x1 + x2) / 2
       const dist = Math.hypot(x2 - x1, y2 - y1)
-      const arcElevation = Math.max(70, Math.min(160, dist * 0.35))
+      const arcElevation = Math.max(60, Math.min(150, dist * 0.35))
       const midY = Math.min(y1, y2) - arcElevation
 
       const pathD = `M ${x1} ${y1} Q ${midX} ${midY} ${x2} ${y2}`
@@ -508,18 +508,16 @@ export const AttackMap: FC = () => {
 
       {/* Main Area: Archipelago Map Canvas & Sidebar */}
       <Box style={{ flex: 1, display: 'flex', position: 'relative', overflow: 'hidden' }}>
-        {/* Ocean Tactical Map */}
+        {/* Ocean Tactical Map with Provided Islands Background */}
         <Box
           style={{
             flex: 1,
             position: 'relative',
-            backgroundColor: '#050a14',
-            backgroundImage: `
-              radial-gradient(circle at 50% 50%, rgba(14, 52, 68, 0.25) 0%, transparent 80%),
-              linear-gradient(rgba(30, 60, 85, 0.12) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(30, 60, 85, 0.12) 1px, transparent 1px)
-            `,
-            backgroundSize: '100% 100%, 64px 64px, 64px 64px',
+            backgroundColor: '#071616',
+            backgroundImage: `url('/islands-map.jpg')`,
+            backgroundSize: '100% 100%',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
             overflow: 'hidden',
           }}
         >
@@ -533,6 +531,11 @@ export const AttackMap: FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
+              backgroundColor: 'rgba(5, 16, 16, 0.75)',
+              padding: '6px 14px',
+              borderRadius: '20px',
+              border: '1px solid rgba(32, 201, 151, 0.3)',
+              backdropFilter: 'blur(6px)',
             }}
           >
             <Box
@@ -545,7 +548,7 @@ export const AttackMap: FC = () => {
               }}
             />
             <Text size="11px" fw={800} c="#20c997" ff="monospace" style={{ letterSpacing: '0.1em' }}>
-              TACTICAL RADAR · ONLINE (10 ATOLLS DETECTED)
+              TACTICAL RADAR · 10 ARCHIPELAGO ATOLLS ONLINE
             </Text>
           </Box>
 
@@ -553,15 +556,24 @@ export const AttackMap: FC = () => {
           <Text
             size="10px"
             ff="monospace"
-            c="rgba(100, 140, 180, 0.3)"
-            style={{ position: 'absolute', bottom: '16px', left: '20px', zIndex: 1 }}
+            c="rgba(100, 200, 180, 0.45)"
+            style={{
+              position: 'absolute',
+              bottom: '16px',
+              left: '20px',
+              zIndex: 1,
+              backgroundColor: 'rgba(5, 16, 16, 0.65)',
+              padding: '4px 10px',
+              borderRadius: '6px',
+              backdropFilter: 'blur(4px)',
+            }}
           >
-            GRID: LAT 07°15'S / LON 112°45'E · DEPTH: -3,240m · JAVA PACIFIC TRENCH
+            GRID: LAT 07°15'S / LON 112°45'E · IONIC ATOLLS WARZONE · JAVA DEEP SEA
           </Text>
 
-          {/* MASTER SVG CANVAS: Islands, Radar, Ballistic Missile Arcs, and Nuclear Detonations */}
+          {/* MASTER SVG CANVAS: Radar, Ballistic Missile Arcs, and Nuclear Detonations */}
           <svg
-            viewBox="0 0 1000 650"
+            viewBox="0 0 1024 571"
             preserveAspectRatio="none"
             style={{
               position: 'absolute',
@@ -591,89 +603,42 @@ export const AttackMap: FC = () => {
                   <feMergeNode in="SourceGraphic" />
                 </feMerge>
               </filter>
-
-              {/* Island Land Gradient */}
-              <linearGradient id="island-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#1b2a38" />
-                <stop offset="60%" stopColor="#121d27" />
-                <stop offset="100%" stopColor="#0c141d" />
-              </linearGradient>
-
-              {/* Island Coastal Reef Water Gradient */}
-              <radialGradient id="reef-grad" cx="50%" cy="50%" r="50%">
-                <stop offset="40%" stopColor="rgba(26, 92, 90, 0.45)" />
-                <stop offset="80%" stopColor="rgba(18, 64, 78, 0.25)" />
-                <stop offset="100%" stopColor="transparent" />
-              </radialGradient>
             </defs>
 
             {/* Ocean Sonar Rings */}
-            <circle cx="500" cy="325" r="280" fill="none" stroke="rgba(40, 90, 120, 0.08)" strokeWidth="1" strokeDasharray="4 4" />
-            <circle cx="500" cy="325" r="420" fill="none" stroke="rgba(40, 90, 120, 0.06)" strokeWidth="1" />
+            <circle cx="512" cy="285" r="240" fill="none" stroke="rgba(32, 201, 151, 0.08)" strokeWidth="1" strokeDasharray="4 4" />
+            <circle cx="512" cy="285" r="380" fill="none" stroke="rgba(32, 201, 151, 0.05)" strokeWidth="1" />
 
-            {/* RENDER ISLANDS FOR EACH TEAM */}
+            {/* RENDER NUCLEAR SHOCKWAVES & TARGET CROSSHAIRS */}
             {FINALIST_TEAMS.map((team) => {
-              const cx = team.x * 10
-              const cy = team.y * 6.5
+              const cx = team.x * 10.24
+              const cy = team.y * 5.71
               const isDetonating = nukeDetonation?.id === team.id
-              const isAttacking = activeAttacker?.id === team.id
               const isSelected = selectedTeam.id === team.id
 
               return (
-                <g key={`island-${team.id}`} transform={`translate(${cx}, ${cy})`}>
-                  {/* Island Shallow Water Reef Glow */}
-                  <path
-                    d={team.reefPath}
-                    fill="url(#reef-grad)"
-                    stroke="rgba(32, 201, 151, 0.2)"
-                    strokeWidth="1.5"
-                    strokeDasharray="6 3"
-                    style={{ animation: 'waterRipple 4s infinite ease-in-out' }}
-                  />
-
-                  {/* Island Landmass Contour */}
-                  <path
-                    d={team.islandPath}
-                    fill="url(#island-grad)"
-                    stroke={
-                      isDetonating
-                        ? '#ff6b6b'
-                        : isAttacking
-                        ? '#20c997'
-                        : isSelected
-                        ? '#38d9a9'
-                        : '#233748'
-                    }
-                    strokeWidth={isDetonating ? '3' : isSelected ? '2.5' : '1.5'}
-                    filter={isDetonating ? 'url(#nuke-glow)' : undefined}
-                    style={{ transition: 'all 0.3s ease' }}
-                  />
-
-                  {/* Topographical Elevation Rings */}
-                  <circle cx="0" cy="0" r="38" fill="none" stroke="rgba(60, 110, 140, 0.25)" strokeWidth="1" strokeDasharray="2 3" />
-                  <circle cx="0" cy="0" r="46" fill="none" stroke="rgba(60, 110, 140, 0.15)" strokeWidth="1" />
-
-                  {/* Island Sector Name Banner in Ocean */}
-                  <text
-                    x="0"
-                    y="58"
-                    textAnchor="middle"
-                    fill="#7593af"
-                    fontSize="9px"
-                    fontFamily="monospace"
-                    fontWeight="700"
-                    letterSpacing="0.08em"
-                  >
-                    {team.sector} · {team.islandName}
-                  </text>
-
-                  {/* Tactical Crosshair / Radar Degree Ring */}
-                  <g opacity="0.4">
-                    <line x1="-50" y1="0" x2="-44" y2="0" stroke="#4a7090" strokeWidth="1" />
-                    <line x1="44" y1="0" x2="50" y2="0" stroke="#4a7090" strokeWidth="1" />
-                    <line x1="0" y1="-50" x2="0" y2="-44" stroke="#4a7090" strokeWidth="1" />
-                    <line x1="0" y1="44" x2="0" y2="50" stroke="#4a7090" strokeWidth="1" />
+                <g key={`island-fx-${team.id}`} transform={`translate(${cx}, ${cy})`}>
+                  {/* Subtle Tactical Crosshair / Degree Marks */}
+                  <g opacity="0.35">
+                    <line x1="-36" y1="0" x2="-30" y2="0" stroke="#38d9a9" strokeWidth="1.5" />
+                    <line x1="30" y1="0" x2="36" y2="0" stroke="#38d9a9" strokeWidth="1.5" />
+                    <line x1="0" y1="-36" x2="0" y2="-30" stroke="#38d9a9" strokeWidth="1.5" />
+                    <line x1="0" y1="30" x2="0" y2="36" stroke="#38d9a9" strokeWidth="1.5" />
                   </g>
+
+                  {/* Selected Island Ring */}
+                  {isSelected && (
+                    <circle
+                      cx="0"
+                      cy="0"
+                      r="32"
+                      fill="none"
+                      stroke="#20c997"
+                      strokeWidth="1.5"
+                      strokeDasharray="4 3"
+                      opacity="0.8"
+                    />
+                  )}
 
                   {/* Nuclear Impact Shockwave Explosion Animation */}
                   {isDetonating && (
@@ -694,7 +659,7 @@ export const AttackMap: FC = () => {
                         filter="url(#nuke-glow)"
                         style={{ animation: 'shockwavePulse 1.2s 0.3s infinite' }}
                       />
-                      <circle cx="0" cy="0" r="16" fill="rgba(255, 107, 107, 0.6)" filter="url(#nuke-glow)" />
+                      <circle cx="0" cy="0" r="22" fill="rgba(255, 107, 107, 0.55)" filter="url(#nuke-glow)" />
                     </g>
                   )}
                 </g>
@@ -710,7 +675,7 @@ export const AttackMap: FC = () => {
                   fill="none"
                   stroke={atk.color}
                   strokeWidth="3.5"
-                  opacity="0.8"
+                  opacity="0.85"
                   filter="url(#plasma-glow)"
                   strokeDasharray="16 8"
                   style={{ animation: 'missileDash 0.8s linear infinite' }}
@@ -727,8 +692,8 @@ export const AttackMap: FC = () => {
 
                 {/* Nuclear Missile Warhead */}
                 <circle
-                  cx={atk.victim.x * 10}
-                  cy={atk.victim.y * 6.5}
+                  cx={atk.victim.x * 10.24}
+                  cy={atk.victim.y * 5.71}
                   r="6"
                   fill="#ff6b6b"
                   filter="url(#nuke-glow)"
@@ -743,18 +708,18 @@ export const AttackMap: FC = () => {
             const isDetonating = nukeDetonation?.id === team.id
             const isSelected = selectedTeam.id === team.id
 
-            let ringColor = '#1f3448'
-            let ringGlow = '0 4px 14px rgba(0,0,0,0.8)'
+            let ringColor = 'rgba(32, 201, 151, 0.4)'
+            let ringGlow = '0 0 10px rgba(0,0,0,0.8)'
 
             if (isDetonating) {
               ringColor = '#ff6b6b'
-              ringGlow = '0 0 0 4px #ff6b6b, 0 0 24px rgba(255, 107, 107, 0.9)'
+              ringGlow = '0 0 0 4px #ff6b6b, 0 0 26px rgba(255, 107, 107, 0.95)'
             } else if (isAttacking) {
               ringColor = '#20c997'
               ringGlow = '0 0 0 4px #20c997, 0 0 24px rgba(32, 201, 151, 0.9)'
             } else if (isSelected) {
               ringColor = '#38d9a9'
-              ringGlow = '0 0 0 3px #38d9a9, 0 0 16px rgba(56, 217, 169, 0.6)'
+              ringGlow = '0 0 0 3px #38d9a9, 0 0 18px rgba(56, 217, 169, 0.7)'
             }
 
             return (
@@ -788,27 +753,27 @@ export const AttackMap: FC = () => {
                         Rank #{team.rank} • {team.score.toLocaleString('id-ID', { minimumFractionDigits: 1 })} pts
                       </Text>
                       <Text size="10px" c="#64748b">
-                        Silo: {team.teamCode} • Island Status: {team.status}
+                        Silo: {team.teamCode} • Status: {team.status}
                       </Text>
                     </Stack>
                   }
                 >
-                  <Stack align="center" gap={4}>
+                  <Stack align="center" gap={3}>
                     {/* Fortress Circular Bunker Logo */}
                     <Box
                       style={{
-                        width: '54px',
-                        height: '54px',
+                        width: '50px',
+                        height: '50px',
                         borderRadius: '50%',
-                        backgroundColor: '#0c141e',
+                        backgroundColor: '#0a1414',
                         border: `2px solid ${ringColor}`,
                         boxShadow: ringGlow,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        padding: '6px',
+                        padding: '5px',
                         transition: 'all 0.25s ease',
-                        transform: isDetonating ? 'scale(1.2)' : isAttacking || isSelected ? 'scale(1.1)' : 'scale(1)',
+                        transform: isDetonating ? 'scale(1.2)' : isAttacking || isSelected ? 'scale(1.12)' : 'scale(1)',
                         position: 'relative',
                       }}
                     >
@@ -827,12 +792,12 @@ export const AttackMap: FC = () => {
                         <Box
                           style={{
                             position: 'absolute',
-                            top: '-12px',
-                            right: '-12px',
+                            top: '-10px',
+                            right: '-10px',
                             backgroundColor: '#ff6b6b',
                             borderRadius: '50%',
                             padding: '3px',
-                            boxShadow: '0 0 10px #ff6b6b',
+                            boxShadow: '0 0 12px #ff6b6b',
                           }}
                         >
                           <Icon path={mdiNuke} size={0.6} color="#ffffff" />
@@ -841,20 +806,30 @@ export const AttackMap: FC = () => {
                     </Box>
 
                     {/* Team Name Label */}
-                    <Text
-                      size="11px"
-                      c="#ffffff"
-                      fw={800}
+                    <Box
                       style={{
-                        maxWidth: '125px',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        textShadow: '0 2px 6px rgba(0,0,0,1)',
+                        backgroundColor: 'rgba(5, 15, 15, 0.75)',
+                        padding: '2px 8px',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(32, 201, 151, 0.25)',
+                        backdropFilter: 'blur(4px)',
+                        maxWidth: '130px',
                       }}
                     >
-                      {team.name}
-                    </Text>
+                      <Text
+                        size="11px"
+                        c="#ffffff"
+                        fw={800}
+                        style={{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          textShadow: '0 2px 6px #000',
+                        }}
+                      >
+                        {team.name}
+                      </Text>
+                    </Box>
                   </Stack>
                 </Tooltip>
               </Box>
