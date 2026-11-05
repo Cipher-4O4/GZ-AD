@@ -47,28 +47,28 @@ export const ADSidebar: FC = () => {
   const [toolkitOpened, setToolkitOpened] = useState(false)
   const [flagsInput, setFlagsInput] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [tickSeconds, setTickSeconds] = useState(51)
-  const [roundNumber, setRoundNumber] = useState(1)
-  const [tickInRound, setTickInRound] = useState(1)
+  const [tickSeconds, setTickSeconds] = useState(60)
+  const [roundNumber, setRoundNumber] = useState(19)
+  const [tickInRound, setTickInRound] = useState(2)
   const [feedTab, setFeedTab] = useState<FeedTab>('all')
 
+  // Realtime Polling from A&D Engine
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTickSeconds((prev) => {
-        if (prev <= 1) {
-          setTickInRound((tick) => {
-            if (tick >= 5) {
-              setRoundNumber((round) => round + 1)
-              return 1
-            }
-            return tick + 1
-          })
-          return 60
-        }
-        return prev - 1
-      })
-    }, 1000)
-    return () => clearInterval(timer)
+    const fetchState = async () => {
+      try {
+        const res = await fetch('/api/ad/state')
+        if (!res.ok) return
+        const data = await res.json()
+        if (typeof data.round === 'number') setRoundNumber(data.round)
+        if (typeof data.tick === 'number') setTickInRound(data.tick)
+        if (typeof data.secondsLeft === 'number') setTickSeconds(data.secondsLeft)
+      } catch (e) {
+        // ignore
+      }
+    }
+    fetchState()
+    const interval = setInterval(fetchState, 1500)
+    return () => clearInterval(interval)
   }, [])
 
   const flagLines = flagsInput

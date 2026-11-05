@@ -534,98 +534,109 @@ Bun.serve({
       return Response.json({ teamId, flags: myFlags }, { headers })
     }
 
-    // 5. Flag Submission Endpoint
-    if (path === '/api/ad/submit' || path === '/api/submit' || path.match(/\/api\/game\/\d+\/submit/)) {
+    // 5. Flag Submission Endpoint (Single & Batch)
+    if (path.includes('/submit')) {
       if (req.method !== 'POST') {
         return Response.json({ error: 'Method not allowed' }, { status: 405, headers })
       }
 
       try {
         const body = await req.json()
-        const rawFlag = (body.flag || body.answer || '').trim()
         const submitterId = parseInt(body.teamId || '7') // Default submitter: Team 7 (Z3RODAY)
+        const attacker = state.teams.find((t) => t.id === submitterId) || state.teams[6]
 
-        if (!rawFlag) {
-          return Response.json({ accepted: false, message: 'Flag cannot be empty' }, { status: 400, headers })
+        const flagList: string[] = Array.isArray(body.flags)
+          ? body.flags.map((f: string) => f.trim()).filter(Boolean)
+          : [(body.flag || body.answer || '').trim()].filter(Boolean)
+
+        if (!flagList.length) {
+          return Response.json({ acceptedCount: 0, totalPoints: 0, message: 'Flag cannot be empty' }, { status: 400, headers })
         }
 
-        const attacker = state.teams.find((t) => t.id === submitterId)
-        if (!attacker) {
-          return Response.json({ accepted: false, message: 'Invalid submitting team' }, { status: 400, headers })
+        const results: Array<{ flag: string; status: 'accepted' | 'rejected'; message: string; points: number }> = []
+        let acceptedCount = 0
+
+        for (const rawFlag of flagList) {
+          const flagRecord = state.flags[rawFlag]
+
+          if (!flagRecord) {
+            results.push({ flag: rawFlag, status: 'rejected', message: 'Invalid flag or unknown service', points: 0 })
+            continue
+          }
+
+          if (flagRecord.teamId === submitterId) {
+            results.push({ flag: rawFlag, status: 'rejected', message: 'Cannot submit flag from your own service!', points: 0 })
+            continue
+          }
+
+          if (flagRecord.expiresTick < state.totalTickCount) {
+            results.push({ flag: rawFlag, status: 'rejected', message: 'Flag has expired for this tick', points: 0 })
+            continue
+          }
+
+          if (flagRecord.capturedBy.includes(submitterId)) {
+            results.push({ flag: rawFlag, status: 'rejected', message: 'You have already captured this flag!', points: 0 })
+            continue
+          }
+
+          // ACCEPTED!
+          flagRecord.capturedBy.push(submitterId)
+          acceptedCount += 1
+
+          const victim = state.teams.find((t) => t.id === flagRecord.teamId) || state.teams[0]
+          const svcKey = flagRecord.serviceKey
+
+          attacker.score += 100
+          attacker.captures += 1
+          if (!attacker.services[svcKey]) attacker.services[svcKey] = { attack: 0, defense: 0, availability: 0 }
+          attacker.services[svcKey].attack += 100
+
+          victim.score = Math.max(0, victim.score - 50)
+          if (!victim.services[svcKey]) victim.services[svcKey] = { attack: 0, defense: 0, availability: 0 }
+          victim.services[svcKey].defense = Math.max(0, victim.services[svcKey].defense - 50)
+
+          const attackEvent: AttackLog = {
+            id: `atk_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+            time: getTimeStr(),
+            attackerId: attacker.id,
+            victimId: victim.id,
+            service: svcKey,
+            text: `${attacker.name} → ${victim.name} (Flag captured!)`,
+            isNuke: true,
+            color: '#fab005',
+          }
+
+          state.attacks.unshift(attackEvent)
+          if (state.attacks.length > 50) state.attacks.pop()
+
+          results.push({
+            flag: rawFlag,
+            status: 'accepted',
+            message: `Flag accepted! +100 Attack Points against ${victim.name}`,
+            points: 100,
+          })
+
+          console.log(`[A&D Flag Captured] 💥 ${attacker.name} captured flag from ${victim.name} on [${svcKey}]!`)
         }
 
-        // Validate flag against active flags
-        const flagRecord = state.flags[rawFlag]
-
-        if (!flagRecord) {
-          return Response.json({ accepted: false, message: 'Invalid flag or unknown service' }, { status: 200, headers })
+        if (acceptedCount > 0) {
+          sortTeams()
+          saveState()
         }
-
-        // Cannot submit own team's flag
-        if (flagRecord.teamId === submitterId) {
-          return Response.json({ accepted: false, message: 'Cannot submit flag from your own service!' }, { status: 200, headers })
-        }
-
-        // Check if already expired
-        if (flagRecord.expiresTick < state.totalTickCount) {
-          return Response.json({ accepted: false, message: 'Flag has expired for this tick' }, { status: 200, headers })
-        }
-
-        // Check if already captured by this team
-        if (flagRecord.capturedBy.includes(submitterId)) {
-          return Response.json({ accepted: false, message: 'You have already captured this flag!' }, { status: 200, headers })
-        }
-
-        // ACCEPTED! Process points & attack event
-        flagRecord.capturedBy.push(submitterId)
-
-        const victim = state.teams.find((t) => t.id === flagRecord.teamId) || state.teams[0]
-        const svcKey = flagRecord.serviceKey
-
-        // Update scores (+100 Attack for attacker, -50 Defense penalty for victim)
-        attacker.score += 100
-        attacker.captures += 1
-        if (!attacker.services[svcKey]) attacker.services[svcKey] = { attack: 0, defense: 0, availability: 0 }
-        attacker.services[svcKey].attack += 100
-
-        victim.score = Math.max(0, victim.score - 50)
-        if (!victim.services[svcKey]) victim.services[svcKey] = { attack: 0, defense: 0, availability: 0 }
-        victim.services[svcKey].defense = Math.max(0, victim.services[svcKey].defense - 50)
-
-        // Sort teams
-        sortTeams()
-
-        // Create Attack Event
-        const attackEvent: AttackLog = {
-          id: `atk_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-          time: getTimeStr(),
-          attackerId: attacker.id,
-          victimId: victim.id,
-          service: svcKey,
-          text: `${attacker.name} → ${victim.name} (Flag captured!)`,
-          isNuke: true,
-          color: '#fab005',
-        }
-
-        state.attacks.unshift(attackEvent)
-        if (state.attacks.length > 50) state.attacks.pop()
-
-        saveState()
-
-        console.log(`[A&D Flag Captured] 💥 ${attacker.name} successfully exploited ${victim.name} on [${svcKey}]!`)
 
         return Response.json(
           {
-            accepted: true,
-            status: 'accepted',
-            points: 100,
-            message: `Flag accepted! +100 Attack Points against ${victim.name}`,
-            attack: attackEvent,
+            acceptedCount,
+            totalPoints: acceptedCount * 100,
+            results,
+            message: acceptedCount > 0
+              ? `Berhasil submit ${acceptedCount} flag! (+${acceptedCount * 100} poin)`
+              : results[0]?.message || 'Flag ditolak',
           },
           { headers }
         )
       } catch (err: any) {
-        return Response.json({ accepted: false, message: err.message || 'Submission error' }, { status: 400, headers })
+        return Response.json({ acceptedCount: 0, totalPoints: 0, message: err.message || 'Submission error' }, { status: 400, headers })
       }
     }
 
@@ -684,6 +695,42 @@ Bun.serve({
             bio: 'SMK NEGERI 1 BOYOLANGU',
             avatar: '/logos/smkn1-boyolangu.png',
           },
+        },
+        { headers }
+      )
+    }
+
+    if (path.includes('/details')) {
+      const z3roday = state.teams.find((t) => t.id === 7) || state.teams[6]
+      return Response.json(
+        {
+          challenges: {
+            Crypto: [
+              { id: 1, title: 'simple-crypto', category: 'Crypto', score: 1000, solved: 3, bloods: [], disableBloodBonus: false },
+            ],
+            Pwn: [
+              { id: 2, title: 'simple-pwn', category: 'Pwn', score: 1000, solved: 2, bloods: [], disableBloodBonus: false },
+            ],
+            Web: [
+              { id: 3, title: 'simple-web', category: 'Web', score: 1000, solved: 4, bloods: [], disableBloodBonus: false },
+              { id: 4, title: 'coloring', category: 'Web', score: 1000, solved: 1, bloods: [], disableBloodBonus: false },
+            ],
+          },
+          challengeCount: 4,
+          rank: {
+            rank: z3roday.rank,
+            score: z3roday.score,
+            team: {
+              id: z3roday.id,
+              name: z3roday.name,
+              bio: z3roday.school,
+              avatar: z3roday.logo,
+            },
+            solvedCount: z3roday.captures,
+          },
+          teamToken: 'ad_token_z3roday_final_ionic2026',
+          writeupRequired: false,
+          writeupDeadline: 0,
         },
         { headers }
       )

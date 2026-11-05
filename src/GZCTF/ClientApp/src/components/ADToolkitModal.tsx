@@ -93,7 +93,7 @@ DNS = 10.43.0.1
 
 [Peer]
 PublicKey = aDummyServerPublicKey=
-Endpoint = 143.198.202.181:51820
+Endpoint = 10.43.170.150:51820
 AllowedIPs = 10.43.0.0/16, 172.0.0.0/8
 PersistentKeepalive = 25`
     const blob = new Blob([dummyConfig], { type: 'text/plain' })
@@ -388,9 +388,9 @@ PersistentKeepalive = 25`
                 >
                   <Group justify="space-between">
                     <Text size="xs" ff="monospace">
-                      ssh &lt;challenge-id&gt;@143.198.202.181 -p 2222 -i ~/.ssh/your-key
+                      ssh &lt;challenge-id&gt;@10.43.170.150 -p 2222 -i ~/.ssh/your-key
                     </Text>
-                    <CopyButton value="ssh <challenge-id>@143.198.202.181 -p 2222 -i ~/.ssh/your-key">
+                    <CopyButton value="ssh <challenge-id>@10.43.170.150 -p 2222 -i ~/.ssh/your-key">
                       {({ copied, copy }) => (
                         <Button
                           size="compact-xs"

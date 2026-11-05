@@ -1,24 +1,18 @@
 import {
   ActionIcon,
-  Alert,
   Badge,
   Box,
-  Button,
   Group,
   Image,
-  Modal,
   ScrollArea,
-  Select,
   Stack,
   Text,
-  TextInput,
   Title,
   Tooltip,
 } from '@mantine/core'
 import {
   mdiCircle,
   mdiCrosshairsGps,
-  mdiFlag,
   mdiFullscreen,
   mdiFullscreenExit,
   mdiNuke,
@@ -238,12 +232,6 @@ export const AttackMap: FC = () => {
   const [nukeDetonation, setNukeDetonation] = useState<TeamNode | null>(null)
   const [activeAttacker, setActiveAttacker] = useState<TeamNode | null>(null)
 
-  // Flag submit modal state
-  const [submitModalOpen, setSubmitModalOpen] = useState(false)
-  const [flagInput, setFlagInput] = useState('')
-  const [submitterTeamId, setSubmitterTeamId] = useState('7') // Z3RODAY default
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitStatus, setSubmitStatus] = useState<{ success: boolean; msg: string } | null>(null)
 
   const [activityLogs, setActivityLogs] = useState<
     { time: string; service: string; text: string; isNuke?: boolean }[]
@@ -374,34 +362,6 @@ export const AttackMap: FC = () => {
     return () => clearInterval(interval)
   }, [])
 
-  // Flag Submission Handler
-  const handleFlagSubmit = async () => {
-    if (!flagInput.trim()) return
-    setIsSubmitting(true)
-    setSubmitStatus(null)
-
-    try {
-      const res = await fetch('/api/ad/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          flag: flagInput.trim(),
-          teamId: parseInt(submitterTeamId),
-        }),
-      })
-      const result = await res.json()
-      if (result.accepted) {
-        setSubmitStatus({ success: true, msg: result.message || 'Flag accepted! +100 Attack Points' })
-        setFlagInput('')
-      } else {
-        setSubmitStatus({ success: false, msg: result.message || 'Flag rejected' })
-      }
-    } catch (e: any) {
-      setSubmitStatus({ success: false, msg: e.message || 'Submission error' })
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
 
   const formatCountdown = (secs: number) => {
     const m = Math.floor(secs / 60)
@@ -562,30 +522,6 @@ export const AttackMap: FC = () => {
                 {formatCountdown(secondsLeft)}
               </Text>
             </Stack>
-
-            {/* Divider */}
-            <Box w="1px" h={26} bg="#1a2725" />
-
-            {/* SUBMIT FLAG BUTTON */}
-            <Button
-              size="xs"
-              variant="filled"
-              leftSection={<Icon path={mdiFlag} size={0.7} />}
-              onClick={() => setSubmitModalOpen(true)}
-              style={{
-                backgroundColor: 'rgba(32, 201, 151, 0.15)',
-                border: '1px solid #20c997',
-                color: '#20c997',
-                fontFamily: 'monospace',
-                fontWeight: 700,
-                fontSize: '11px',
-                letterSpacing: '0.06em',
-                height: '30px',
-                padding: '0 10px',
-              }}
-            >
-              SUBMIT FLAG
-            </Button>
 
             {/* Fullscreen Button */}
             <ActionIcon
@@ -1158,103 +1094,6 @@ export const AttackMap: FC = () => {
           ))}
         </Box>
       </Box>
-
-      {/* WARFARE TERMINAL: SUBMIT FLAG MODAL */}
-      <Modal
-        opened={submitModalOpen}
-        onClose={() => {
-          setSubmitModalOpen(false)
-          setSubmitStatus(null)
-        }}
-        title={
-          <Group gap="xs">
-            <Icon path={mdiNuke} size={1} color="#20c997" />
-            <Text ff="monospace" fw={800} size="sm" c="#20c997">
-              WARFARE TERMINAL · SUBMIT ENEMY FLAG
-            </Text>
-          </Group>
-        }
-        centered
-        styles={{
-          content: {
-            backgroundColor: '#0a1413',
-            border: '1px solid #20c997',
-            boxShadow: '0 0 30px rgba(32, 201, 151, 0.25)',
-            color: '#e2e8f0',
-          },
-          header: {
-            backgroundColor: '#0a1413',
-            borderBottom: '1px solid #162c26',
-          },
-        }}
-      >
-        <Stack gap="md">
-          <Select
-            label="Submitting Team (Attacker)"
-            data={teams.map((t) => ({
-              value: t.id.toString(),
-              label: `${t.name} (${t.school})`,
-            }))}
-            value={submitterTeamId}
-            onChange={(val) => setSubmitterTeamId(val || '7')}
-            styles={{
-              input: {
-                backgroundColor: '#050c0b',
-                borderColor: '#19332c',
-                color: '#ffffff',
-                fontFamily: 'monospace',
-              },
-            }}
-          />
-          <TextInput
-            label="Stolen Flag"
-            placeholder="flag{ionic26_...}"
-            value={flagInput}
-            onChange={(e) => setFlagInput(e.currentTarget.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleFlagSubmit()
-            }}
-            styles={{
-              input: {
-                backgroundColor: '#050c0b',
-                borderColor: '#19332c',
-                color: '#20c997',
-                fontFamily: 'monospace',
-                fontWeight: 700,
-              },
-            }}
-          />
-          {submitStatus && (
-            <Alert
-              color={submitStatus.success ? 'teal' : 'red'}
-              title={submitStatus.success ? 'FLAG ACCEPTED (+100 PTS)' : 'FLAG REJECTED'}
-              styles={{
-                root: {
-                  backgroundColor: submitStatus.success ? '#0b261f' : '#2b1115',
-                  borderColor: submitStatus.success ? '#20c997' : '#ff6b6b',
-                },
-              }}
-            >
-              {submitStatus.msg}
-            </Alert>
-          )}
-          <Button
-            fullWidth
-            color="teal"
-            loading={isSubmitting}
-            onClick={handleFlagSubmit}
-            style={{
-              backgroundColor: '#20c997',
-              color: '#060c0f',
-              fontWeight: 800,
-              fontFamily: 'monospace',
-              letterSpacing: '0.05em',
-            }}
-          >
-            FIRE ICBM STRIKE (SUBMIT)
-          </Button>
-        </Stack>
-      </Modal>
     </Box>
   )
 }

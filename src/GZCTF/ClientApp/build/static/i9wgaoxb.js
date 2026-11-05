@@ -1,9 +1,0 @@
-/* The GZ::CTF Project @unknown
- * 
- * License   : GNU Affero General Public License v3.0 (Core)
- * License   : LicenseRef-GZCTF-Restricted (Restricted components)
- * Commit    : Unofficial build version
- * Build     : 2026-11-05T06:35:58.142Z
- * Copyright (C) 2022-2026 GZTimeWalker. All Rights Reserved.
- */
-import{y as e}from"./dn2mmff4.js";import{C as t,j as n,t as r}from"./flou4uvr.js";import{d as i,w as a}from"./nycdw5fb.js";import{a as o,i as s}from"./m97qnbek.js";var{Axios:c,AxiosError:l,CanceledError:u,isCancel:d,CancelToken:f,VERSION:p,all:m,Cancel:h,isAxiosError:g,spread:_,toFormData:v,AxiosHeaders:y,HttpStatusCode:b,formToJSON:x,getAdapter:S,mergeConfig:C,create:w}=a,T=r(),E=e(),D=async e=>{if(e instanceof l){if(e.response?.data instanceof Blob){let t=e.response.data;if(t.type===i.Text)return await t.text();if(t.type===i.Json){let e=window.JSON.parse(await t.text());if(e.title)return e.title}}return e.message}return String(e)},O=(e,t)=>{if(e.data instanceof Blob){let n=window.URL.createObjectURL(e.data),r=e.headers[`content-disposition`];!t&&r&&(t=(e=>{let t=e.match(/filename\*=UTF-8''([^;]+)/i);if(t)return decodeURIComponent(t[1]);let n=e.match(/filename="?([^";]+)"?/);if(n)return n[1]})(r));let i=document.createElement(`a`);i.style.display=`none`,i.href=n,t&&(i.download=t),document.body.appendChild(i),i.click(),window.setTimeout(()=>{i.remove(),window.URL.revokeObjectURL(n)})}else throw Error(`Response data is not a Blob`)},k=async(e,r,i,a)=>{r(!0),s({color:`orange`,id:`blob-download`,message:i(`common.download.started`),loading:!0,autoClose:!1});try{let n=await e;o({id:`blob-download`,color:`teal`,message:i(`common.download.success`),icon:(0,E.jsx)(T.Icon,{path:t,size:1}),loading:!1,autoClose:!0}),O(n,a)}catch(e){o({id:`blob-download`,color:`red`,title:i(`common.download.failed`),message:await D(e),icon:(0,E.jsx)(T.Icon,{path:n,size:1}),autoClose:!1,withCloseButton:!0})}finally{r(!1)}};export{D as n,k as t};
