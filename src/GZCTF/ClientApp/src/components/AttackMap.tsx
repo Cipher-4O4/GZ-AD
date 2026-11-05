@@ -181,16 +181,22 @@ export const FINALIST_TEAMS: TeamNode[] = [
 
 export const AttackMap: FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const [round, setRound] = useState(26)
-  const [tick, setTick] = useState(1)
+  const [round, setRound] = useState(19)
+  const [tick, setTick] = useState(2)
+  const [secondsLeft, setSecondsLeft] = useState(22)
   const [activeAttacks, setActiveAttacks] = useState<AttackEvent[]>([])
+  const [selectedTeam, setSelectedTeam] = useState<TeamNode>(FINALIST_TEAMS[6]) // Default Z3RODAY
+  const [attackerId, setAttackerId] = useState<string | null>(null)
+  const [victimId, setVictimId] = useState<string | null>(null)
+
   const [activityLogs, setActivityLogs] = useState<
     { time: string; service: string; text: string }[]
   >([
-    { time: '11.34.33', service: 'simple-pwn', text: 'Z3RODAY → WilSec - BOEDOET 47' },
-    { time: '11.34.30', service: 'simple-web', text: 'United Shell-SCC → Gangantua' },
-    { time: '11.34.25', service: 'simple-crypto', text: 'rootsanctum → Maaf TKA Pilih CTF' },
-    { time: '11.34.18', service: 'simple-pwn', text: 'WilSec - Apa aja → Duo Perncari Flag' },
+    { time: '10:54:05', service: 'simple-web', text: 'Z3RODAY → WilSec - BOEDOET 47' },
+    { time: '10:54:05', service: 'simple-crypto', text: 'United Shell-SCC → Gangantua' },
+    { time: '10:54:05', service: 'simple-pwn', text: 'rootsanctum → Maaf TKA Pilih CTF' },
+    { time: '10:54:04', service: 'simple-web', text: 'WilSec - Apa aja → Duo Perncari Flag' },
+    { time: '10:54:03', service: 'simple-crypto', text: 'kata magfi "bebas" → WilSec - Panitia' },
   ])
 
   const containerRef = useRef<HTMLDivElement>(null)
@@ -205,21 +211,40 @@ export const AttackMap: FC = () => {
     }
   }
 
+  // Next Tick countdown timer
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSecondsLeft((prev) => {
+        if (prev <= 1) {
+          setTick((t) => (t >= 5 ? 1 : t + 1))
+          return 30
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [])
+
   // Laser attack animation generator
   useEffect(() => {
     const interval = setInterval(() => {
-      const attacker = FINALIST_TEAMS[Math.floor(Math.random() * FINALIST_TEAMS.length)]
-      const victim = FINALIST_TEAMS[Math.floor(Math.random() * FINALIST_TEAMS.length)]
-      if (attacker.id === victim.id) return
+      const attackerIdx = Math.floor(Math.random() * FINALIST_TEAMS.length)
+      let victimIdx = Math.floor(Math.random() * FINALIST_TEAMS.length)
+      while (victimIdx === attackerIdx) {
+        victimIdx = Math.floor(Math.random() * FINALIST_TEAMS.length)
+      }
+
+      const attacker = FINALIST_TEAMS[attackerIdx]
+      const victim = FINALIST_TEAMS[victimIdx]
 
       const services = ['simple-pwn', 'simple-web', 'simple-crypto']
       const service = services[Math.floor(Math.random() * services.length)]
-      const colors = ['#ff922b', '#ff6b6b', '#20c997', '#339af0', '#fab005']
+      const colors = ['#20c997', '#ff6b6b', '#ff922b', '#339af0', '#fcc419']
       const color = colors[Math.floor(Math.random() * colors.length)]
 
       const attack: AttackEvent = {
         id: Math.random().toString(),
-        time: new Date().toLocaleTimeString('id-ID'),
+        time: new Date().toLocaleTimeString('id-ID', { hour12: false }),
         service,
         attacker: attacker.name,
         victim: victim.name,
@@ -230,26 +255,35 @@ export const AttackMap: FC = () => {
         color,
       }
 
-      setActiveAttacks((prev) => [...prev.slice(-6), attack])
+      setAttackerId(attacker.id)
+      setVictimId(victim.id)
+
+      setActiveAttacks((prev) => [...prev.slice(-4), attack])
       setActivityLogs((prev) => [
         { time: attack.time, service: attack.service, text: `${attacker.name} → ${victim.name}` },
         ...prev.slice(0, 15),
       ])
-    }, 2200)
+    }, 2400)
 
     return () => clearInterval(interval)
   }, [])
+
+  const formatCountdown = (secs: number) => {
+    const m = Math.floor(secs / 60)
+    const s = secs % 60
+    return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`
+  }
 
   return (
     <Box
       ref={containerRef}
       style={{
-        backgroundColor: '#0c0d10',
+        backgroundColor: '#0a0b0e',
         color: '#e4e5e7',
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
+        fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
       }}
     >
       {/* Top Header Bar */}
@@ -257,33 +291,77 @@ export const AttackMap: FC = () => {
         px="lg"
         py="sm"
         style={{
-          borderBottom: '1px solid #1f2127',
-          backgroundColor: '#111216',
+          borderBottom: '1px solid #181a20',
+          backgroundColor: '#0e1015',
         }}
       >
         <Group justify="space-between" align="center">
           <Group gap="lg">
             <Stack gap={2}>
-              <Text size="xs" ff="monospace" c="dimmed" fw={600}>
-                ATTACK & DEFENSE · PUBLIC VIEW
+              <Text size="11px" ff="monospace" c="#6c7280" fw={700} style={{ letterSpacing: '0.08em' }}>
+                ATTACK & DEFENSE • PUBLIC VIEW
               </Text>
-              <Title order={3} c="white" fw={800}>
-                Final Cybersecurity IONIC 2026
+              <Title order={3} c="#ffffff" fw={800} style={{ letterSpacing: '-0.02em' }}>
+                Warm Up Final
               </Title>
             </Stack>
 
             <Group gap="xs">
-              <Badge variant="outline" color="gray" size="lg" radius="sm">
-                Arena &nbsp;<Text span c="white" fw={700}>IONIC Arena</Text>
+              <Badge
+                variant="outline"
+                size="lg"
+                radius="md"
+                style={{
+                  backgroundColor: 'rgba(32, 201, 151, 0.08)',
+                  borderColor: 'rgba(32, 201, 151, 0.3)',
+                  color: '#20c997',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                }}
+              >
+                ARENA&nbsp;&nbsp;<Text span c="white" fw={700}>IONIC 2026</Text>
               </Badge>
-              <Badge variant="outline" color="gray" size="lg" radius="sm">
-                ROUND &nbsp;<Text span c="white" fw={700}>{round}</Text>
+              <Badge
+                variant="outline"
+                size="lg"
+                radius="md"
+                style={{
+                  backgroundColor: '#14161d',
+                  borderColor: '#242731',
+                  color: '#9ca3af',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                }}
+              >
+                ROUND&nbsp;&nbsp;<Text span c="white" fw={700}>{round}</Text>
               </Badge>
-              <Badge variant="outline" color="gray" size="lg" radius="sm">
-                TICK &nbsp;<Text span c="teal" fw={700}>0{tick}</Text>&nbsp;/ 5
+              <Badge
+                variant="outline"
+                size="lg"
+                radius="md"
+                style={{
+                  backgroundColor: '#14161d',
+                  borderColor: '#242731',
+                  color: '#9ca3af',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                }}
+              >
+                TICK&nbsp;&nbsp;<Text span c="#20c997" fw={700}>0{tick}</Text>&nbsp;/ 5
               </Badge>
-              <Badge variant="outline" color="gray" size="lg" radius="sm">
-                NEXT TICK &nbsp;<Text span c="teal" fw={600}>Awaiting next tick</Text>
+              <Badge
+                variant="outline"
+                size="lg"
+                radius="md"
+                style={{
+                  backgroundColor: '#14161d',
+                  borderColor: '#242731',
+                  color: '#9ca3af',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                }}
+              >
+                NEXT TICK&nbsp;&nbsp;<Text span c="#20c997" fw={700} ff="monospace">{formatCountdown(secondsLeft)}</Text>
               </Badge>
             </Group>
           </Group>
@@ -291,9 +369,9 @@ export const AttackMap: FC = () => {
           <ActionIcon
             variant="default"
             size="lg"
-            radius="sm"
+            radius="md"
             onClick={toggleFullscreen}
-            style={{ backgroundColor: '#1a1b20', border: '1px solid #2e3036' }}
+            style={{ backgroundColor: '#14161d', border: '1px solid #242731', color: '#9ca3af' }}
           >
             <Icon path={isFullscreen ? mdiFullscreenExit : mdiFullscreen} size={1} />
           </ActionIcon>
@@ -307,13 +385,39 @@ export const AttackMap: FC = () => {
           style={{
             flex: 1,
             position: 'relative',
-            backgroundColor: '#0c0d10',
+            backgroundColor: '#0a0b0e',
             backgroundImage:
-              'radial-gradient(circle at 50% 50%, rgba(20, 80, 70, 0.18) 0%, transparent 75%), linear-gradient(#14161c 1px, transparent 1px), linear-gradient(90deg, #14161c 1px, transparent 1px)',
-            backgroundSize: '100% 100%, 48px 48px, 48px 48px',
+              'radial-gradient(circle at 50% 50%, rgba(16, 75, 65, 0.14) 0%, transparent 75%), linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)',
+            backgroundSize: '100% 100%, 52px 52px, 52px 52px',
             overflow: 'hidden',
           }}
         >
+          {/* Status Indicator Live */}
+          <Box
+            style={{
+              position: 'absolute',
+              top: '16px',
+              left: '16px',
+              zIndex: 3,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <Box
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: '#20c997',
+                boxShadow: '0 0 10px #20c997',
+              }}
+            />
+            <Text size="11px" fw={700} c="#20c997" ff="monospace" style={{ letterSpacing: '0.08em' }}>
+              LIVE
+            </Text>
+          </Box>
+
           {/* SVG Lasers */}
           <svg
             style={{
@@ -327,8 +431,8 @@ export const AttackMap: FC = () => {
             }}
           >
             <defs>
-              <filter id="laser-glow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="4" result="glow" />
+              <filter id="laser-glow" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur stdDeviation="5" result="glow" />
                 <feMerge>
                   <feMergeNode in="glow" />
                   <feMergeNode in="SourceGraphic" />
@@ -337,7 +441,7 @@ export const AttackMap: FC = () => {
             </defs>
             {activeAttacks.map((atk) => (
               <g key={atk.id}>
-                {/* Outer Glow */}
+                {/* Laser Glow */}
                 <line
                   x1={`${atk.attackerX}%`}
                   y1={`${atk.attackerY}%`}
@@ -345,10 +449,10 @@ export const AttackMap: FC = () => {
                   y2={`${atk.victimY}%`}
                   stroke={atk.color}
                   strokeWidth="3.5"
-                  opacity="0.8"
+                  opacity="0.85"
                   filter="url(#laser-glow)"
                 />
-                {/* Inner Core */}
+                {/* Laser Core */}
                 <line
                   x1={`${atk.attackerX}%`}
                   y1={`${atk.attackerY}%`}
@@ -362,56 +466,89 @@ export const AttackMap: FC = () => {
             ))}
           </svg>
 
-          {/* Team Nodes on the Map */}
-          {FINALIST_TEAMS.map((team) => (
-            <Box
-              key={team.id}
-              style={{
-                position: 'absolute',
-                left: `${team.x}%`,
-                top: `${team.y}%`,
-                transform: 'translate(-50%, -50%)',
-                zIndex: 2,
-                textAlign: 'center',
-                cursor: 'pointer',
-              }}
-            >
-              <Tooltip
-                multiline
-                label={
-                  <Stack gap={2}>
-                    <Text fw={700} size="sm">{team.name}</Text>
-                    <Text size="xs" c="dimmed">{team.school}</Text>
-                    <Text size="xs" fw={600} c="teal">Rank #{team.rank} • {team.score.toLocaleString('id-ID')} pts</Text>
-                  </Stack>
-                }
+          {/* Team Circular Nodes on the Map */}
+          {FINALIST_TEAMS.map((team) => {
+            const isAttacking = attackerId === team.id
+            const isVictim = victimId === team.id
+            const isSelected = selectedTeam.id === team.id
+
+            let ringColor = 'rgba(255, 255, 255, 0.12)'
+            let ringGlow = '0 4px 14px rgba(0,0,0,0.7)'
+
+            if (isAttacking) {
+              ringColor = '#20c997'
+              ringGlow = '0 0 0 3px #20c997, 0 0 20px rgba(32, 201, 151, 0.8)'
+            } else if (isVictim) {
+              ringColor = '#ff6b6b'
+              ringGlow = '0 0 0 3px #ff6b6b, 0 0 20px rgba(255, 107, 107, 0.8)'
+            } else if (isSelected) {
+              ringColor = '#20c997'
+              ringGlow = '0 0 0 2px #20c997, 0 0 14px rgba(32, 201, 151, 0.4)'
+            }
+
+            return (
+              <Box
+                key={team.id}
+                onClick={() => setSelectedTeam(team)}
+                style={{
+                  position: 'absolute',
+                  left: `${team.x}%`,
+                  top: `${team.y}%`,
+                  transform: 'translate(-50%, -50%)',
+                  zIndex: 2,
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                }}
               >
-                <Stack align="center" gap={6}>
-                  <Box
-                    style={{
-                      width: '64px',
-                      height: '64px',
-                      borderRadius: '12px',
-                      backgroundColor: '#191b22',
-                      border: `2px solid ${team.rank <= 3 ? '#fab005' : team.id === '7' ? '#20c997' : '#2b2d38'}`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: '4px',
-                      boxShadow: team.id === '7' ? '0 0 16px rgba(32, 201, 151, 0.4)' : '0 4px 14px rgba(0,0,0,0.6)',
-                      transition: 'transform 0.2s',
-                    }}
-                  >
-                    <Image
-                      src={team.logo}
-                      alt={team.name}
-                      w="100%"
-                      h="100%"
-                      fit="contain"
-                      fallbackSrc="/favicon.webp"
-                    />
-                  </Box>
-                  <Stack gap={0} align="center">
+                <Tooltip
+                  multiline
+                  withArrow
+                  transitionProps={{ duration: 150 }}
+                  label={
+                    <Stack gap={2} p={2}>
+                      <Text fw={700} size="sm" c="white">{team.name}</Text>
+                      <Text size="xs" c="dimmed">{team.school}</Text>
+                      <Text size="xs" fw={700} c="#20c997">
+                        Rank #{team.rank} • {team.score.toLocaleString('id-ID', { minimumFractionDigits: 1 })} pts
+                      </Text>
+                      <Text size="10px" c="#9ca3af">
+                        Code: {team.teamCode} • Status: {team.status}
+                      </Text>
+                    </Stack>
+                  }
+                >
+                  <Stack align="center" gap={6}>
+                    {/* Circular Logo Node */}
+                    <Box
+                      style={{
+                        width: '56px',
+                        height: '56px',
+                        borderRadius: '50%',
+                        backgroundColor: '#12141a',
+                        border: `2px solid ${ringColor}`,
+                        boxShadow: ringGlow,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '6px',
+                        transition: 'all 0.25s ease',
+                        transform: isAttacking || isVictim || isSelected ? 'scale(1.1)' : 'scale(1)',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <Image
+                        src={team.logo}
+                        alt={team.name}
+                        w="100%"
+                        h="100%"
+                        fit="contain"
+                        fallbackSrc="/favicon.webp"
+                        style={{ borderRadius: '50%' }}
+                      />
+                    </Box>
+
+                    {/* Team Name Label */}
                     <Text
                       size="11px"
                       c="#ffffff"
@@ -421,134 +558,166 @@ export const AttackMap: FC = () => {
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        textShadow: '0 2px 4px rgba(0,0,0,0.95)',
+                        textShadow: '0 2px 5px rgba(0,0,0,0.95)',
                       }}
                     >
                       {team.name}
                     </Text>
-                    <Text
-                      size="9px"
-                      c="#adb5bd"
-                      fw={500}
-                      style={{
-                        maxWidth: '110px',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      {team.school}
-                    </Text>
                   </Stack>
-                </Stack>
-              </Tooltip>
-            </Box>
-          ))}
+                </Tooltip>
+              </Box>
+            )
+          })}
+
+          {/* Bottom Right Selected Team Info Card */}
+          <Box
+            style={{
+              position: 'absolute',
+              bottom: '16px',
+              right: '16px',
+              backgroundColor: '#12141c',
+              border: '1px solid #222634',
+              borderRadius: '8px',
+              padding: '12px 16px',
+              zIndex: 3,
+              boxShadow: '0 8px 24px rgba(0,0,0,0.7)',
+              maxWidth: '320px',
+            }}
+          >
+            <Group gap="sm" wrap="nowrap">
+              <Box
+                w={40}
+                h={40}
+                style={{
+                  borderRadius: '50%',
+                  backgroundColor: '#181b24',
+                  border: '1px solid #2a2f40',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '4px',
+                  flexShrink: 0,
+                }}
+              >
+                <Image src={selectedTeam.logo} alt={selectedTeam.name} w={32} h={32} fit="contain" />
+              </Box>
+              <Stack gap={1} style={{ overflow: 'hidden' }}>
+                <Text size="sm" fw={800} c="white" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {selectedTeam.name}
+                </Text>
+                <Text size="xs" c="#9ca3af" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  #{selectedTeam.rank} • {selectedTeam.school} • {selectedTeam.score.toLocaleString('id-ID', { minimumFractionDigits: 1 })} points
+                </Text>
+              </Stack>
+            </Group>
+          </Box>
         </Box>
 
         {/* Right Sidebar: OFFICIAL SCORES (Top 10 Finalis) */}
         <Box
-          w="340px"
+          w="360px"
           style={{
-            backgroundColor: '#101115',
-            borderLeft: '1px solid #1f2127',
+            backgroundColor: '#0d0f14',
+            borderLeft: '1px solid #181a20',
             display: 'flex',
             flexDirection: 'column',
             zIndex: 3,
           }}
         >
           {/* Header */}
-          <Box p="md" style={{ borderBottom: '1px solid #1f2127' }}>
-            <Group justify="space-between">
-              <Text size="xs" ff="monospace" c="dimmed" fw={700}>
+          <Box p="md" style={{ borderBottom: '1px solid #181a20' }}>
+            <Group justify="space-between" align="center">
+              <Text size="11px" ff="monospace" c="#6c7280" fw={700} style={{ letterSpacing: '0.08em' }}>
                 OFFICIAL SCORES
               </Text>
-              <Badge color="teal" variant="light" size="sm">
-                10 FINALIS
-              </Badge>
+              <Text size="11px" ff="monospace" c="#6c7280" fw={700}>
+                10 TEAMS
+              </Text>
             </Group>
-            <Title order={4} c="white" fw={700} mt={4}>
-              Top 10 Finalis IONIC 2026
+            <Title order={3} c="#ffffff" fw={800} mt={4}>
+              Top 10
             </Title>
           </Box>
 
           {/* List of top 10 teams */}
           <ScrollArea style={{ flex: 1 }} p="xs">
-            <Stack gap="xs">
-              {FINALIST_TEAMS.map((t) => (
-                <Group
-                  key={t.id}
-                  justify="space-between"
-                  p="xs"
-                  style={{
-                    backgroundColor: t.id === '7' ? 'rgba(32, 201, 151, 0.12)' : 'transparent',
-                    border: t.id === '7' ? '1px solid rgba(32, 201, 151, 0.4)' : '1px solid transparent',
-                    borderRadius: '8px',
-                  }}
-                >
-                  <Group gap="xs" wrap="nowrap">
-                    <Text size="xs" ff="monospace" fw={700} c={t.rank <= 3 ? '#fab005' : 'dimmed'}>
-                      {t.rank < 10 ? `0${t.rank}` : t.rank}
-                    </Text>
-                    <Box w={32} h={32} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Image src={t.logo} alt={t.name} w={28} h={28} fit="contain" fallbackSrc="/favicon.webp" />
-                    </Box>
-                    <Stack gap={1} style={{ maxWidth: '145px' }}>
+            <Stack gap={4}>
+              {FINALIST_TEAMS.map((t) => {
+                const isSelected = selectedTeam.id === t.id
+                return (
+                  <Group
+                    key={t.id}
+                    justify="space-between"
+                    p="xs"
+                    onClick={() => setSelectedTeam(t)}
+                    style={{
+                      backgroundColor: isSelected ? 'rgba(32, 201, 151, 0.1)' : 'transparent',
+                      border: isSelected ? '1px solid rgba(32, 201, 151, 0.35)' : '1px solid transparent',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.15s ease',
+                    }}
+                  >
+                    <Group gap="sm" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
                       <Text
                         size="xs"
-                        fw={700}
-                        c="white"
-                        style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                        ff="monospace"
+                        fw={800}
+                        c={t.rank === 1 ? '#fab005' : t.rank === 2 ? '#20c997' : '#6c7280'}
+                        style={{ width: '20px' }}
                       >
-                        {t.name}
+                        {t.rank < 10 ? `0${t.rank}` : t.rank}
                       </Text>
-                      <Group gap={4}>
-                        <Icon
-                          path={mdiCircle}
-                          size={0.25}
-                          color={t.status === 'Operational' ? '#2f9e44' : '#fab005'}
-                        />
+                      <Box
+                        w={32}
+                        h={32}
+                        style={{
+                          borderRadius: '50%',
+                          backgroundColor: '#161822',
+                          border: '1px solid #242938',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '3px',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Image src={t.logo} alt={t.name} w={24} h={24} fit="contain" fallbackSrc="/favicon.webp" />
+                      </Box>
+                      <Stack gap={0} style={{ minWidth: 0, flex: 1 }}>
                         <Text
-                          size="9px"
-                          c="dimmed"
+                          size="xs"
+                          fw={700}
+                          c="white"
                           style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                         >
-                          {t.school}
+                          {t.name}
                         </Text>
-                      </Group>
-                    </Stack>
-                  </Group>
+                        <Group gap={4}>
+                          <Icon
+                            path={mdiCircle}
+                            size={0.25}
+                            color={t.status === 'Operational' ? '#20c997' : '#fab005'}
+                          />
+                          <Text
+                            size="10px"
+                            c="#868e96"
+                            style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                          >
+                            {t.teamCode} • {t.status}
+                          </Text>
+                        </Group>
+                      </Stack>
+                    </Group>
 
-                  <Text size="xs" ff="monospace" fw={700} c="white">
-                    {t.score.toLocaleString('id-ID', { minimumFractionDigits: 1 })}
-                  </Text>
-                </Group>
-              ))}
+                    <Text size="xs" ff="monospace" fw={700} c="#ffffff" style={{ flexShrink: 0 }}>
+                      {t.score.toLocaleString('id-ID', { minimumFractionDigits: 1 })}
+                    </Text>
+                  </Group>
+                )
+              })}
             </Stack>
           </ScrollArea>
-
-          {/* Pinned Bottom Team: Z3RODAY */}
-          <Box
-            p="md"
-            style={{
-              borderTop: '1px solid #1f2127',
-              backgroundColor: '#16181e',
-            }}
-          >
-            <Group gap="sm" wrap="nowrap">
-              <Box w={36} h={36} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Image src="/logos/smkn1-boyolangu.png" alt="Z3RODAY" w={32} h={32} fit="contain" />
-              </Box>
-              <Stack gap={1}>
-                <Text size="sm" fw={700} c="white">
-                  Z3RODAY
-                </Text>
-                <Text size="xs" c="dimmed">
-                  #07 · SMK NEGERI 1 BOYOLANGU · 47.177,1 pts
-                </Text>
-              </Stack>
-            </Group>
-          </Box>
         </Box>
       </Box>
 
@@ -557,31 +726,43 @@ export const AttackMap: FC = () => {
         px="md"
         py="xs"
         style={{
-          borderTop: '1px solid #1f2127',
-          backgroundColor: '#0d0e12',
+          borderTop: '1px solid #181a20',
+          backgroundColor: '#0b0c10',
           overflow: 'hidden',
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
         }}
       >
-        <Badge color="teal" variant="filled" size="sm" radius="xs" style={{ flexShrink: 0 }}>
+        <Badge
+          color="teal"
+          variant="filled"
+          size="sm"
+          radius="xs"
+          style={{
+            flexShrink: 0,
+            backgroundColor: '#20c997',
+            color: '#000000',
+            fontWeight: 800,
+            letterSpacing: '0.05em',
+          }}
+        >
           LIVE ACTIVITY
         </Badge>
         <Box
           style={{
             display: 'flex',
-            gap: '24px',
+            gap: '28px',
             whiteSpace: 'nowrap',
             overflowX: 'auto',
           }}
         >
           {activityLogs.map((log, i) => (
             <Group key={i} gap="xs" style={{ flexShrink: 0 }}>
-              <Text size="xs" c="dimmed" ff="monospace">
+              <Text size="xs" c="#6c7280" ff="monospace">
                 {log.time} · {log.service}
               </Text>
-              <Text size="xs" fw={600} c="#90c2f7">
+              <Text size="xs" fw={600} c="#81a6f8">
                 {log.text}
               </Text>
             </Group>
