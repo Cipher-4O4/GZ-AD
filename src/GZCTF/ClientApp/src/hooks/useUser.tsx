@@ -39,21 +39,7 @@ export const useUser = () => {
     },
   })
 
-  const fallbackUser: ProfileUserInfoModel = {
-    userId: 'ZeroDay SMKN 1 Boyolangu',
-    userName: 'ZeroDay',
-    email: 'zeroday@student.smk.id',
-    role: Role.User,
-    avatar: null,
-    bio: 'Cyber Security Team',
-    phone: null,
-    realName: 'ZeroDay Team',
-    stdNumber: null,
-  }
-
-  const activeUser: ProfileUserInfoModel | undefined = user ?? fallbackUser
-
-  return { user: activeUser, error, mutate }
+  return { user, error, mutate }
 }
 
 export const useUserRole = () => {

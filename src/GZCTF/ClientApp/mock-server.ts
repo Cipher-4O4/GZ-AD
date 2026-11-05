@@ -324,6 +324,18 @@ function saveState() {
   }
 }
 
+let loggedInUser: { id: string; userName: string; role: string; team?: any } | null = {
+  id: 'admin_1',
+  userName: 'Admin',
+  role: 'Admin',
+  team: {
+    id: 7,
+    name: 'Z3RODAY',
+    bio: 'SMK NEGERI 1 BOYOLANGU',
+    avatar: '/logos/smkn1-boyolangu.png',
+  },
+}
+
 // Generate new flags for every team & service for the given tick
 function generateFlagsForTick(tickNum: number) {
   for (const team of state.teams) {
@@ -799,12 +811,34 @@ Bun.serve({
       )
     }
 
+    if (path === '/api/config/captcha' || path.includes('/config/captcha')) {
+      return Response.json({ type: 'None' }, { headers })
+    }
+
     if (path.includes('/account/login') || path === '/api/account/login') {
+      let u = 'Admin'
+      try {
+        const body = await req.json().catch(() => ({}))
+        if (body.userName) u = body.userName
+      } catch {}
+
+      loggedInUser = {
+        id: 'admin_1',
+        userName: u,
+        role: 'Admin',
+        team: {
+          id: 7,
+          name: 'Z3RODAY',
+          bio: 'SMK NEGERI 1 BOYOLANGU',
+          avatar: '/logos/smkn1-boyolangu.png',
+        },
+      }
+
       return Response.json(
         {
-          id: 'admin_1',
-          userName: 'Admin',
-          role: 'Admin',
+          id: loggedInUser.id,
+          userName: loggedInUser.userName,
+          role: loggedInUser.role,
           token: 'jwt_admin_ionic2026',
         },
         { headers }
@@ -812,21 +846,20 @@ Bun.serve({
     }
 
     if (path.includes('/account/logout')) {
+      loggedInUser = null
       return Response.json({ success: true }, { headers })
     }
 
     if (path === '/api/account/profile') {
+      if (!loggedInUser) {
+        return Response.json({ message: 'Unauthorized' }, { status: 401, headers })
+      }
       return Response.json(
         {
-          id: 'admin_1',
-          userName: 'Admin',
-          role: 'Admin',
-          team: {
-            id: 7,
-            name: 'Z3RODAY',
-            bio: 'SMK NEGERI 1 BOYOLANGU',
-            avatar: '/logos/smkn1-boyolangu.png',
-          },
+          id: loggedInUser.id,
+          userName: loggedInUser.userName,
+          role: loggedInUser.role,
+          team: loggedInUser.team,
         },
         { headers }
       )
