@@ -747,53 +747,66 @@ Bun.serve({
         const body = await req.json()
         const action = body.action
 
-        if (action === 'pause') {
+        if (action === 'start') {
+          state.round = 1
+          state.tick = 1
+          state.totalTickCount = 1
+          state.isPaused = false
+          state.lastTickTimestamp = Date.now()
+          generateFlagsForTick(1)
+          saveState()
+          return Response.json({ success: true, message: 'Kompetisi resmi dimulai! Ronde 1 · Tick 1' }, { headers })
+        } else if (action === 'pause') {
           state.isPaused = true
           saveState()
-          return Response.json({ success: true, message: 'Engine di-pause' }, { headers })
+          return Response.json({ success: true, message: 'Engine berhasil dijeda' }, { headers })
         } else if (action === 'resume') {
           state.isPaused = false
           state.lastTickTimestamp = Date.now()
           saveState()
-          return Response.json({ success: true, message: 'Engine dilanjutkan' }, { headers })
-        } else if (action === 'next-tick') {
+          return Response.json({ success: true, message: 'Engine berhasil dilanjutkan' }, { headers })
+        } else if (action === 'next-tick' || action === 'next_tick') {
           advanceTick()
-          return Response.json({ success: true, message: `Berpindah ke Tick ${state.tick} (Round ${state.round})` }, { headers })
+          return Response.json({ success: true, message: `Berpindah ke Tick ${state.tick} (Ronde ${state.round})` }, { headers })
+        } else if (action === 'reset_zero' || action === 'reset_round' || action === 'reset') {
+          resetToStandbyState(true)
+          return Response.json({ success: true, message: 'Seluruh data berhasil direset ke 0 (Pre-Game Standby)' }, { headers })
+        } else if (action === 'sabotage') {
+          resetToStandbyState(true)
+          return Response.json({ success: true, message: 'Layanan awal telah disabotase (Mumble & Offline)' }, { headers })
+        } else if (action === 'repair_all') {
+          for (const team of state.teams) {
+            for (const svc of SERVICES) {
+              if (team.services[svc.key]) {
+                ;(team.services[svc.key] as any).status = 'UP'
+              }
+            }
+            team.status = 'Operational'
+          }
+          saveState()
+          return Response.json({ success: true, message: 'Semua layanan tim berhasil dipulihkan (UP)' }, { headers })
+        } else if (action === 'set_status') {
+          const { teamId, serviceKey, status } = body
+          const targetTeam = state.teams.find((t) => t.id === teamId)
+          if (targetTeam && targetTeam.services[serviceKey]) {
+            ;(targetTeam.services[serviceKey] as any).status = status
+            const statuses = SERVICES.map((s) => (targetTeam.services[s.key] as any)?.status || 'UP')
+            if (statuses.includes('DOWN')) {
+              targetTeam.status = 'Offline'
+            } else if (statuses.includes('FAULT')) {
+              targetTeam.status = 'Mumble'
+            } else {
+              targetTeam.status = 'Operational'
+            }
+            saveState()
+          }
+          return Response.json({ success: true, teamId, serviceKey, status }, { headers })
         } else if (action === 'set-tick-seconds') {
           const secs = parseInt(body.tickSeconds || '60')
           state.tickSeconds = Math.max(10, secs)
           state.lastTickTimestamp = Date.now()
           saveState()
           return Response.json({ success: true, message: `Durasi tick diatur ke ${state.tickSeconds}s` }, { headers })
-        } else if (action === 'reset') {
-          state.round = 1
-          state.tick = 1
-          state.totalTickCount = 1
-          state.lastTickTimestamp = Date.now()
-          state.isPaused = false
-          state.flags = {}
-          state.attacks = []
-          state.teams = INITIAL_TEAMS.map((t, idx) => ({
-            id: idx + 1,
-            name: t.name,
-            school: t.school,
-            code: `T${401 + idx}`,
-            logo: t.logo,
-            rank: idx + 1,
-            score: 50000,
-            status: (t.status as AdStatus) || 'Operational',
-            captures: 0,
-            ip: t.ip,
-            services: {
-              'simple-crypto': { attack: 0, defense: 0, availability: 1000 },
-              'simple-pwn': { attack: 0, defense: 0, availability: 1000 },
-              'simple-web': { attack: 0, defense: 0, availability: 1000 },
-              coloring: { attack: 0, defense: 0, availability: 1000 },
-            },
-          }))
-          plantNewFlags()
-          saveState()
-          return Response.json({ success: true, message: 'Game direset ke Round 1 Tick 1' }, { headers })
         }
         return Response.json({ error: 'Aksi tidak dikenal' }, { status: 400, headers })
       } catch (e: any) {
@@ -1013,70 +1026,6 @@ Bun.serve({
         saveState()
       } catch {}
       return Response.json(adminGameInfo, { headers })
-    }
-
-    // Admin A&D Engine Control
-    if (path === '/api/ad/admin/control' && req.method === 'POST') {
-      try {
-        const body = await req.json()
-        if (body.action === 'start') {
-          state.round = 1
-          state.tick = 1
-          state.totalTickCount = 1
-          state.isPaused = false
-          state.lastTickTimestamp = Date.now()
-          generateFlagsForTick(1)
-          saveState()
-          return Response.json({ ok: true, round: 1, tick: 1, isPaused: false }, { headers })
-        } else if (body.action === 'pause') {
-          state.isPaused = true
-          saveState()
-          return Response.json({ ok: true, isPaused: true }, { headers })
-        } else if (body.action === 'resume') {
-          state.isPaused = false
-          state.lastTickTimestamp = Date.now()
-          saveState()
-          return Response.json({ ok: true, isPaused: false }, { headers })
-        } else if (body.action === 'next_tick') {
-          advanceTick()
-          return Response.json({ ok: true, round: state.round, tick: state.tick }, { headers })
-        } else if (body.action === 'reset_zero' || body.action === 'reset_round' || body.action === 'reset') {
-          resetToStandbyState(true)
-          return Response.json({ ok: true, round: 0, tick: 0, isPaused: true }, { headers })
-        } else if (body.action === 'sabotage') {
-          resetToStandbyState(true)
-          return Response.json({ ok: true, message: 'Layanan awal telah disabotase (Mumble & Offline)' }, { headers })
-        } else if (body.action === 'repair_all') {
-          for (const team of state.teams) {
-            for (const svc of SERVICES) {
-              if (team.services[svc.key]) {
-                ;(team.services[svc.key] as any).status = 'UP'
-              }
-            }
-            team.status = 'Operational'
-          }
-          saveState()
-          return Response.json({ ok: true, message: 'Semua layanan tim berhasil dipulihkan (UP)' }, { headers })
-        } else if (body.action === 'set_status') {
-          const { teamId, serviceKey, status } = body
-          const targetTeam = state.teams.find((t) => t.id === teamId)
-          if (targetTeam && targetTeam.services[serviceKey]) {
-            ;(targetTeam.services[serviceKey] as any).status = status
-            const statuses = SERVICES.map((s) => (targetTeam.services[s.key] as any)?.status || 'UP')
-            if (statuses.includes('DOWN')) {
-              targetTeam.status = 'Offline'
-            } else if (statuses.includes('FAULT')) {
-              targetTeam.status = 'Mumble'
-            } else {
-              targetTeam.status = 'Operational'
-            }
-            saveState()
-          }
-          return Response.json({ ok: true, teamId, serviceKey, status }, { headers })
-        }
-      } catch (e) {
-        return Response.json({ ok: false, error: String(e) }, { status: 400, headers })
-      }
     }
 
     // Admin & Edit Endpoints
