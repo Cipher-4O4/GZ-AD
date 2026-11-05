@@ -16,9 +16,6 @@ import {
   mdiFullscreen,
   mdiFullscreenExit,
   mdiNuke,
-  mdiRadioactive,
-  mdiRocketLaunch,
-  mdiShieldAlert,
 } from '@mdi/js'
 import { Icon } from '@mdi/react'
 import { FC, useEffect, useRef, useState } from 'react'
@@ -403,106 +400,131 @@ export const AttackMap: FC = () => {
       {/* Top Header Bar */}
       <Box
         px="lg"
-        py="sm"
+        py="xs"
         style={{
-          borderBottom: '1px solid #142033',
-          backgroundColor: '#080d1a',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
+          borderBottom: '1px solid #162422',
+          backgroundColor: '#0a1012',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
           zIndex: 10,
         }}
       >
         <Group justify="space-between" align="center">
           <Group gap="lg">
-            <Stack gap={2}>
-              <Group gap="xs">
-                <Icon path={mdiRadioactive} size={0.7} color="#ff6b6b" />
-                <Text
-                  size="11px"
-                  ff="monospace"
-                  c="#ff6b6b"
-                  fw={800}
-                  style={{ letterSpacing: '0.1em', animation: 'nukeHazardFlash 1.5s infinite' }}
-                >
-                  DEFCON 1 · NUCLEAR ARCHIPELAGO WARFARE
-                </Text>
-              </Group>
-              <Title order={3} c="#ffffff" fw={900} style={{ letterSpacing: '-0.02em' }}>
-                IONIC 2026 · Tactical Island Arena
+            <Stack gap={1}>
+              <Text
+                size="11px"
+                ff="monospace"
+                c="#627874"
+                fw={700}
+                style={{ letterSpacing: '0.08em' }}
+              >
+                ATTACK & DEFENSE · PUBLIC VIEW
+              </Text>
+              <Title order={3} c="#ffffff" fw={800} style={{ letterSpacing: '-0.01em' }}>
+                Warm Up Final
               </Title>
             </Stack>
-
-            <Group gap="xs">
-              <Badge
-                variant="outline"
-                size="lg"
-                radius="md"
-                style={{
-                  backgroundColor: 'rgba(32, 201, 151, 0.08)',
-                  borderColor: 'rgba(32, 201, 151, 0.35)',
-                  color: '#20c997',
-                  fontWeight: 700,
-                  textTransform: 'none',
-                }}
-              >
-                THEATER&nbsp;&nbsp;<Text span c="white" fw={800}>Java Sea Islands</Text>
-              </Badge>
-              <Badge
-                variant="outline"
-                size="lg"
-                radius="md"
-                style={{
-                  backgroundColor: '#0f172a',
-                  borderColor: '#1e293b',
-                  color: '#94a3b8',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                }}
-              >
-                ROUND&nbsp;&nbsp;<Text span c="white" fw={700}>{round}</Text>
-              </Badge>
-              <Badge
-                variant="outline"
-                size="lg"
-                radius="md"
-                style={{
-                  backgroundColor: '#0f172a',
-                  borderColor: '#1e293b',
-                  color: '#94a3b8',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                }}
-              >
-                TICK&nbsp;&nbsp;<Text span c="#20c997" fw={700}>0{tick}</Text>&nbsp;/ 5
-              </Badge>
-              <Badge
-                variant="outline"
-                size="lg"
-                radius="md"
-                style={{
-                  backgroundColor: '#0f172a',
-                  borderColor: '#1e293b',
-                  color: '#94a3b8',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                }}
-              >
-                NEXT STRIKE TICK&nbsp;&nbsp;
-                <Text span c="#20c997" fw={800} ff="monospace">
-                  {formatCountdown(secondsLeft)}
-                </Text>
-              </Badge>
-            </Group>
           </Group>
 
-          <ActionIcon
-            variant="default"
-            size="lg"
-            radius="md"
-            onClick={toggleFullscreen}
-            style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', color: '#94a3b8' }}
-          >
-            <Icon path={isFullscreen ? mdiFullscreenExit : mdiFullscreen} size={1} />
-          </ActionIcon>
+          <Group gap="md" align="center">
+            {/* Arena Pill Badge */}
+            <Box
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                border: '1px solid #1a332d',
+                borderRadius: '6px',
+                overflow: 'hidden',
+                backgroundColor: '#0a1514',
+              }}
+            >
+              <Box
+                px={10}
+                py={4}
+                style={{
+                  backgroundColor: '#16332c',
+                  color: '#20c997',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  fontFamily: 'system-ui, sans-serif',
+                }}
+              >
+                Arena
+              </Box>
+              <Box
+                px={12}
+                py={4}
+                style={{
+                  color: '#e2e8f0',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  fontFamily: 'system-ui, sans-serif',
+                }}
+              >
+                Zero Arena
+              </Box>
+            </Box>
+
+            {/* Divider */}
+            <Box w="1px" h={26} bg="#1a2725" />
+
+            {/* ROUND */}
+            <Stack gap={0} align="flex-start">
+              <Text size="9px" ff="monospace" c="#627874" fw={700} style={{ letterSpacing: '0.05em' }}>
+                ROUND
+              </Text>
+              <Text size="15px" ff="monospace" c="#ffffff" fw={800} lh={1.2}>
+                {round}
+              </Text>
+            </Stack>
+
+            {/* Divider */}
+            <Box w="1px" h={26} bg="#1a2725" />
+
+            {/* TICK */}
+            <Stack gap={0} align="flex-start">
+              <Text size="9px" ff="monospace" c="#627874" fw={700} style={{ letterSpacing: '0.05em' }}>
+                TICK
+              </Text>
+              <Group gap={3} align="baseline" style={{ lineHeight: 1.2 }}>
+                <Text size="15px" ff="monospace" c="#ffffff" fw={800}>
+                  0{tick}
+                </Text>
+                <Text size="11px" ff="monospace" c="#627874" fw={600}>
+                  / 5
+                </Text>
+              </Group>
+            </Stack>
+
+            {/* Divider */}
+            <Box w="1px" h={26} bg="#1a2725" />
+
+            {/* NEXT TICK */}
+            <Stack gap={0} align="flex-start">
+              <Text size="9px" ff="monospace" c="#627874" fw={700} style={{ letterSpacing: '0.05em' }}>
+                NEXT TICK
+              </Text>
+              <Text size="15px" ff="monospace" c="#20c997" fw={800} lh={1.2}>
+                {formatCountdown(secondsLeft)}
+              </Text>
+            </Stack>
+
+            {/* Fullscreen Button */}
+            <ActionIcon
+              variant="default"
+              size="md"
+              radius="sm"
+              onClick={toggleFullscreen}
+              style={{
+                backgroundColor: 'transparent',
+                border: '1px solid #1c2826',
+                color: '#829490',
+                marginLeft: '6px',
+              }}
+            >
+              <Icon path={isFullscreen ? mdiFullscreenExit : mdiFullscreen} size={0.85} />
+            </ActionIcon>
+          </Group>
         </Group>
       </Box>
 
