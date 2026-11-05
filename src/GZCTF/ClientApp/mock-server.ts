@@ -1040,7 +1040,7 @@ Bun.serve({
         } else if (body.action === 'next_tick') {
           advanceTick()
           return Response.json({ ok: true, round: state.round, tick: state.tick }, { headers })
-        } else if (body.action === 'reset_zero') {
+        } else if (body.action === 'reset_zero' || body.action === 'reset_round' || body.action === 'reset') {
           resetToStandbyState(true)
           return Response.json({ ok: true, round: 0, tick: 0, isPaused: true }, { headers })
         } else if (body.action === 'sabotage') {

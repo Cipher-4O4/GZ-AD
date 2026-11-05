@@ -198,23 +198,31 @@ const AdAdminPage: FC = () => {
       if (res.ok) {
         let msg = `Aksi berhasil dieksekusi: ${action}`
         if (action === 'start') msg = 'Kompetisi resmi dimulai! Ronde 1 · Tick 1 aktif.'
-        if (action === 'reset_zero') msg = 'Seluruh data direset ke 0 (Pre-Game Standby).'
+        if (action === 'reset_zero' || action === 'reset_round') msg = 'Seluruh data direset ke 0 (Pre-Game Standby).'
         if (action === 'sabotage') msg = 'Layanan awal telah disabotase (Mumble & Offline). Siap untuk fase perbaikan.'
         if (action === 'repair_all') msg = 'Semua layanan tim berhasil dipulihkan (100% UP).'
+        if (action === 'pause') msg = 'Engine A&D berhasil dijeda.'
+        if (action === 'resume') msg = 'Engine A&D berhasil dilanjutkan.'
+        if (action === 'next_tick') msg = 'Tick berhasil diputar 1 langkah ke depan.'
 
         showNotification({
           color: 'teal',
-          title: 'Berhasil',
           message: msg,
           icon: <Icon path={mdiCheck} size={1} />,
         })
         await fetchState()
+      } else {
+        const errData = await res.json().catch(() => ({}))
+        showNotification({
+          color: 'red',
+          message: errData.error || 'Gagal mengeksekusi perintah pada engine A&D',
+          icon: <Icon path={mdiClose} size={1} />,
+        })
       }
     } catch (e) {
       showNotification({
         color: 'red',
-        title: 'Gagal',
-        message: 'Gagal menghubungi engine A&D',
+        message: 'Gagal menghubungi engine A&D: ' + String(e),
         icon: <Icon path={mdiClose} size={1} />,
       })
     } finally {
