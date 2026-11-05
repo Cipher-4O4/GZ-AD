@@ -17,8 +17,7 @@
 [Rr]eleases/
 x64/
 x86/
-build/
-!src/GZCTF/ClientApp/build/**
+/build/
 src/GZCTF/ClientApp/data/
 bld/
 bin/

@@ -700,9 +700,22 @@ Bun.serve({
       if (await directFile.exists()) {
         return new Response(directFile)
       }
+
+      // Do NOT serve index.html for missing static assets (prevent module script MIME error)
+      if (cleanPath.startsWith('/static/') || cleanPath.startsWith('/logos/')) {
+        return new Response('Not Found', { status: 404 })
+      }
+
       const indexFile = Bun.file('./build/index.html')
       if (await indexFile.exists()) {
-        return new Response(indexFile, {
+        let html = await indexFile.text()
+        html = html
+          .replace(/%title%/g, 'IONIC 2026 · Attack & Defense')
+          .replace(/%lang%/g, 'id')
+          .replace(/%description%/g, 'Final Cybersecurity IONIC 2026 - Attack & Defense Platform')
+          .replace(/%nonce%/g, 'ionic2026')
+
+        return new Response(html, {
           headers: { 'Content-Type': 'text/html; charset=utf-8' },
         })
       }
