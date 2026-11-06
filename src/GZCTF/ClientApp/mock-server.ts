@@ -337,9 +337,11 @@ let singleGame: any = {
   start: Date.now() - 3600000,
   end: Date.now() + 6 * 3600000,
   status: 'Accepted',
+  teamName: 'Z3RODAY',
   practiceMode: true,
   challengesCount: 4,
-  divisions: [],
+  teamCount: 10,
+  divisions: [{ id: 1, name: 'Finalist' }],
 }
 
 let adminGameInfo: any = {
@@ -1189,6 +1191,121 @@ async function handleRequest(req: Request): Promise<Response> {
             author: 'Panitia IONIC 2026',
           },
         ],
+        { headers }
+      )
+    }
+
+    if (path === '/api/team' || path === '/api/team/') {
+      const userTeams = [
+        {
+          id: 7,
+          name: 'Z3RODAY',
+          bio: 'SMK NEGERI 1 BOYOLANGU',
+          avatar: null,
+          memberCount: 3,
+          locked: false,
+        },
+      ]
+      return Response.json(userTeams, { headers })
+    }
+
+    if (path.match(/\/api\/game\/\d+\/check/)) {
+      return Response.json(
+        {
+          joinedTeams: [{ id: 7, division: 1 }],
+          joinableDivisions: [1],
+        },
+        { headers }
+      )
+    }
+
+    if (path.match(/\/api\/game\/\d+\/details/)) {
+      return Response.json(
+        {
+          challengeCount: 4,
+          teamToken: 'ad_tok_t407_2026',
+          writeupRequired: false,
+          writeupDeadline: 0,
+          challenges: {
+            Crypto: [
+              {
+                id: 1,
+                title: 'simple-crypto',
+                type: 'Normal',
+                category: 'Crypto',
+                score: 1000,
+                solved: 0,
+                originalScore: 1000,
+                isSolved: false,
+              },
+            ],
+            Pwn: [
+              {
+                id: 2,
+                title: 'simple-pwn',
+                type: 'Normal',
+                category: 'Pwn',
+                score: 1000,
+                solved: 0,
+                originalScore: 1000,
+                isSolved: false,
+              },
+            ],
+            Web: [
+              {
+                id: 3,
+                title: 'simple-web',
+                type: 'Normal',
+                category: 'Web',
+                score: 1000,
+                solved: 0,
+                originalScore: 1000,
+                isSolved: false,
+              },
+              {
+                id: 4,
+                title: 'coloring',
+                type: 'Normal',
+                category: 'Web',
+                score: 1000,
+                solved: 0,
+                originalScore: 1000,
+                isSolved: false,
+              },
+            ],
+          },
+        },
+        { headers }
+      )
+    }
+
+    if (path.match(/\/api\/game\/\d+\/challenges/)) {
+      return Response.json(
+        [
+          { id: 1, title: 'simple-crypto', category: 'Crypto', score: 1000, type: 'Normal' },
+          { id: 2, title: 'simple-pwn', category: 'Pwn', score: 1000, type: 'Normal' },
+          { id: 3, title: 'simple-web', category: 'Web', score: 1000, type: 'Normal' },
+          { id: 4, title: 'coloring', category: 'Web', score: 1000, type: 'Normal' },
+        ],
+        { headers }
+      )
+    }
+
+    if (path.match(/\/api\/game\/\d+\/scoreboard/)) {
+      const items = state.teams.map((t, idx) => ({
+        rank: idx + 1,
+        id: t.id,
+        name: t.name,
+        organization: t.school,
+        score: t.score,
+        lastSubmission: Date.now() - idx * 60000,
+        solvedChallenges: [],
+      }))
+      return Response.json(
+        {
+          items,
+          divisions: [{ id: 1, name: 'Finalist' }],
+        },
         { headers }
       )
     }
