@@ -10,10 +10,26 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443"
       - "3000:80"
     volumes:
       - ./src/GZCTF/ClientApp/build:/app/build:ro
       - ./src/GZCTF/ClientApp/mock-server.ts:/app/mock-server.ts:ro
+    networks:
+      - gz-network
+
+  # ==========================================
+  # Public HTTPS Tunnel (Cloudflare)
+  # Instant public HTTPS domain (https://*.trycloudflare.com)
+  # Anyone can access without ZeroTier or port-forwarding!
+  # ==========================================
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: gz-ad-tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --url http://web:80
+    depends_on:
+      - web
     networks:
       - gz-network
 

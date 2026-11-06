@@ -3,6 +3,7 @@
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
 import { join } from 'path'
+import { spawnSync } from 'child_process'
 import { gzipSync } from 'bun'
 
 const STATIC_CACHE = new Map<string, { raw: Buffer; gz: Uint8Array; contentType?: string }>()
@@ -24,9 +25,35 @@ function getCachedStatic(filePath: string, contentType?: string) {
 const port = process.env.PORT ? parseInt(process.env.PORT) : 8080
 const DATA_DIR = join(process.cwd(), 'data')
 const STATE_FILE = join(DATA_DIR, 'ad-state.json')
+const CERT_FILE = join(DATA_DIR, 'cert.pem')
+const KEY_FILE = join(DATA_DIR, 'key.pem')
 
 if (!existsSync(DATA_DIR)) {
   mkdirSync(DATA_DIR, { recursive: true })
+}
+
+// Auto-generate SSL Certificate for HTTPS (https://10.43.170.150)
+if (!existsSync(CERT_FILE) || !existsSync(KEY_FILE)) {
+  try {
+    spawnSync('openssl', [
+      'req',
+      '-x509',
+      '-newkey',
+      'rsa:2048',
+      '-keyout',
+      KEY_FILE,
+      '-out',
+      CERT_FILE,
+      '-days',
+      '365',
+      '-nodes',
+      '-subj',
+      '/CN=10.43.170.150',
+    ])
+    console.log('[SSL/TLS] Generated self-signed SSL certificate for https://10.43.170.150')
+  } catch (err) {
+    console.warn('[SSL/TLS] Could not generate SSL certificate:', err)
+  }
 }
 
 export interface AdServiceDef {
@@ -519,11 +546,8 @@ const MIME_TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
 }
 
-// Main HTTP Server
-Bun.serve({
-  port,
-  idleTimeout: 60,
-  async fetch(req) {
+// Main Request Handler
+async function handleRequest(req: Request): Promise<Response> {
     const url = new URL(req.url)
     const originalPath = url.pathname
     const path = originalPath.toLowerCase()
@@ -1237,7 +1261,30 @@ Bun.serve({
 
     // Default Fallback
     return Response.json({}, { headers })
-  },
-})
+}
 
-console.log(`[A&D Realtime Engine] Running successfully on http://0.0.0.0:${port}`)
+// 1. HTTP Server (Port 80)
+Bun.serve({
+  port,
+  idleTimeout: 120,
+  fetch: handleRequest,
+})
+console.log(`[HTTP Server] Running on http://0.0.0.0:${port}`)
+
+// 2. HTTPS Server (Port 443)
+if (existsSync(CERT_FILE) && existsSync(KEY_FILE)) {
+  try {
+    Bun.serve({
+      port: 443,
+      idleTimeout: 120,
+      tls: {
+        cert: Bun.file(CERT_FILE),
+        key: Bun.file(KEY_FILE),
+      },
+      fetch: handleRequest,
+    })
+    console.log(`[HTTPS Server] Running securely on https://0.0.0.0:443 (https://10.43.170.150)`)
+  } catch (err: any) {
+    console.warn(`[HTTPS Server] Notice: Could not bind HTTPS port 443:`, err?.message || err)
+  }
+}
