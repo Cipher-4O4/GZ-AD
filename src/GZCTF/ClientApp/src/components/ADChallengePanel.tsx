@@ -41,7 +41,7 @@ export const ADChallengePanel: FC = () => {
 
     return fromApi.length
       ? fromApi
-      : AD_SERVICES.map((service) => ({ id: service.id, title: service.key, category: service.category }))
+      : AD_SERVICES.map((service) => ({ id: service.id, title: service.title || service.key, category: service.category }))
   }, [teamInfo?.challenges])
 
   const categories = useMemo(() => {
@@ -59,7 +59,7 @@ export const ADChallengePanel: FC = () => {
   const filtered = activeCategory === 'All' ? visible : visible.filter((s) => s.category === activeCategory)
 
   const activeService = selected
-    ? (AD_SERVICES.find((service) => service.key === selected.title) ??
+    ? (AD_SERVICES.find((service) => service.key === selected.title || service.title === selected.title) ??
       AD_SERVICES.find((service) => service.category === selected.category))
     : undefined
 

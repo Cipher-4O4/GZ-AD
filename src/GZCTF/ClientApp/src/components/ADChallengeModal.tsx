@@ -44,7 +44,7 @@ export const ADChallengeModal: FC<ADChallengeModalProps> = ({ service, cateData,
           <Group gap={8} wrap="nowrap">
             {cateData && <Icon path={cateData.icon} size={0.8} color={accent} />}
             <Text fz="1rem" fw={700} style={{ color: '#fff' }}>
-              {service.key}
+              {service.title || service.key}
             </Text>
           </Group>
           <Text fz={11} fw={800} style={{ color: AdColors.danger, letterSpacing: '0.12em' }}>
@@ -67,6 +67,11 @@ export const ADChallengeModal: FC<ADChallengeModalProps> = ({ service, cateData,
             Download Lampiran
           </Text>
           <Button
+            component="a"
+            href={`/attachments/${service.attachment || `${service.key}.zip`}`}
+            download={service.attachment || `${service.key}.zip`}
+            target="_blank"
+            rel="noopener noreferrer"
             size="compact-sm"
             radius={6}
             leftSection={<Icon path={mdiDownload} size={0.7} />}
@@ -78,10 +83,11 @@ export const ADChallengeModal: FC<ADChallengeModalProps> = ({ service, cateData,
                 fontFamily: AdColors.mono,
                 fontSize: 11,
                 fontWeight: 600,
+                textDecoration: 'none',
               },
             }}
           >
-            {service.attachment}
+            {service.attachment || `${service.key}.zip`}
           </Button>
         </Group>
 

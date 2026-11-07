@@ -90,10 +90,10 @@ interface EngineState {
 }
 
 const SERVICES = [
-  { key: 'simple-crypto', name: 'simple-crypto', category: 'Crypto', port: 6969, color: 'grape' },
-  { key: 'simple-pwn', name: 'simple-pwn', category: 'Pwn', port: 7070, color: 'red' },
-  { key: 'simple-web', name: 'simple-web', category: 'Web', port: 1337, color: 'blue' },
-  { key: 'coloring', name: 'coloring', category: 'Misc', port: 8082, color: 'teal' },
+  { key: 'playground', name: 'playground', category: 'Crypto', port: 6969, color: 'grape' },
+  { key: 'cpppp', name: '(C)PPPP!', category: 'Pwn', port: 7070, color: 'red' },
+  { key: 'classic-api', name: 'classic-api', category: 'Web', port: 1337, color: 'blue' },
+  { key: 'coloring', name: 'coloring', category: 'Web', port: 8082, color: 'teal' },
 ]
 
 const AdAdminPage: FC = () => {
@@ -468,9 +468,9 @@ const AdAdminPage: FC = () => {
                   <Table.Tr>
                     <Table.Th>Tim</Table.Th>
                     <Table.Th>IP Vulnbox</Table.Th>
-                    <Table.Th>simple-crypto (:6969)</Table.Th>
-                    <Table.Th>simple-pwn (:7070)</Table.Th>
-                    <Table.Th>simple-web (:1337)</Table.Th>
+                    <Table.Th>playground (:6969)</Table.Th>
+                    <Table.Th>(C)PPPP! (:7070)</Table.Th>
+                    <Table.Th>classic-api (:1337)</Table.Th>
                     <Table.Th>coloring (:8082)</Table.Th>
                     <Table.Th>Total Skor</Table.Th>
                     <Table.Th>Flag Tercuri</Table.Th>

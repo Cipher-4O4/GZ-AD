@@ -110,9 +110,9 @@ export interface AdServiceDef {
 }
 
 export const SERVICES: AdServiceDef[] = [
-  { key: 'simple-crypto', name: 'simple-crypto', category: 'Crypto', port: 6969, color: '#9775fa' },
-  { key: 'simple-pwn', name: 'simple-pwn', category: 'Pwn', port: 7070, color: '#fa5252' },
-  { key: 'simple-web', name: 'simple-web', category: 'Web', port: 1337, color: '#4dabf7' },
+  { key: 'playground', name: 'playground', category: 'Crypto', port: 6969, color: '#9775fa' },
+  { key: 'cpppp', name: '(C)PPPP!', category: 'Pwn', port: 7070, color: '#fa5252' },
+  { key: 'classic-api', name: 'classic-api', category: 'Web', port: 1337, color: '#4dabf7' },
   { key: 'coloring', name: 'coloring', category: 'Web', port: 8082, color: '#40c057' },
 ]
 
@@ -172,9 +172,9 @@ const INITIAL_TEAMS: AdTeamData[] = RAW_TEAMS.map((t, idx) => ({
   captures: 0,
   status: 'Operational',
   services: {
-    'simple-crypto': { attack: 0, defense: 0, availability: 0 },
-    'simple-pwn': { attack: 0, defense: 0, availability: 0 },
-    'simple-web': { attack: 0, defense: 0, availability: 0 },
+    playground: { attack: 0, defense: 0, availability: 0 },
+    cpppp: { attack: 0, defense: 0, availability: 0 },
+    'classic-api': { attack: 0, defense: 0, availability: 0 },
     coloring: { attack: 0, defense: 0, availability: 0 },
   },
 }))
@@ -194,16 +194,16 @@ interface GameState {
 }
 
 const INITIAL_BROKEN_STATUS: Record<number, Record<string, 'UP' | 'FAULT' | 'DOWN'>> = {
-  1: { 'simple-crypto': 'FAULT', 'simple-pwn': 'UP', 'simple-web': 'UP', coloring: 'DOWN' },
-  2: { 'simple-crypto': 'UP', 'simple-pwn': 'FAULT', 'simple-web': 'DOWN', coloring: 'UP' },
-  3: { 'simple-crypto': 'DOWN', 'simple-pwn': 'UP', 'simple-web': 'FAULT', coloring: 'UP' },
-  4: { 'simple-crypto': 'UP', 'simple-pwn': 'DOWN', 'simple-web': 'UP', coloring: 'FAULT' },
-  5: { 'simple-crypto': 'FAULT', 'simple-pwn': 'UP', 'simple-web': 'DOWN', coloring: 'UP' },
-  6: { 'simple-crypto': 'DOWN', 'simple-pwn': 'FAULT', 'simple-web': 'UP', coloring: 'UP' },
-  7: { 'simple-crypto': 'UP', 'simple-pwn': 'DOWN', 'simple-web': 'FAULT', coloring: 'UP' }, // Z3RODAY
-  8: { 'simple-crypto': 'FAULT', 'simple-pwn': 'UP', 'simple-web': 'UP', coloring: 'DOWN' },
-  9: { 'simple-crypto': 'UP', 'simple-pwn': 'FAULT', 'simple-web': 'DOWN', coloring: 'UP' },
-  10: { 'simple-crypto': 'DOWN', 'simple-pwn': 'UP', 'simple-web': 'FAULT', coloring: 'UP' },
+  1: { playground: 'FAULT', cpppp: 'UP', 'classic-api': 'UP', coloring: 'DOWN' },
+  2: { playground: 'UP', cpppp: 'FAULT', 'classic-api': 'DOWN', coloring: 'UP' },
+  3: { playground: 'DOWN', cpppp: 'UP', 'classic-api': 'FAULT', coloring: 'UP' },
+  4: { playground: 'UP', cpppp: 'DOWN', 'classic-api': 'UP', coloring: 'FAULT' },
+  5: { playground: 'FAULT', cpppp: 'UP', 'classic-api': 'DOWN', coloring: 'UP' },
+  6: { playground: 'DOWN', cpppp: 'FAULT', 'classic-api': 'UP', coloring: 'UP' },
+  7: { playground: 'UP', cpppp: 'DOWN', 'classic-api': 'FAULT', coloring: 'UP' }, // Z3RODAY
+  8: { playground: 'FAULT', cpppp: 'UP', 'classic-api': 'UP', coloring: 'DOWN' },
+  9: { playground: 'UP', cpppp: 'FAULT', 'classic-api': 'DOWN', coloring: 'UP' },
+  10: { playground: 'DOWN', cpppp: 'UP', 'classic-api': 'FAULT', coloring: 'UP' },
 }
 
 let state: GameState = {
@@ -306,6 +306,28 @@ if (existsSync(STATE_FILE)) {
     const loaded = JSON.parse(raw)
     if (loaded && loaded.teams && loaded.round !== undefined) {
       state = { ...state, ...loaded }
+      if (state.teams) {
+        for (const t of state.teams) {
+          if (!t.services) t.services = {} as any
+          if ((t.services as any)['simple-crypto']) {
+            t.services.playground = (t.services as any)['simple-crypto']
+            delete (t.services as any)['simple-crypto']
+          }
+          if ((t.services as any)['simple-pwn']) {
+            t.services.cpppp = (t.services as any)['simple-pwn']
+            delete (t.services as any)['simple-pwn']
+          }
+          if ((t.services as any)['simple-web']) {
+            t.services['classic-api'] = (t.services as any)['simple-web']
+            delete (t.services as any)['simple-web']
+          }
+          for (const svc of SERVICES) {
+            if (!t.services[svc.key]) {
+              t.services[svc.key] = { attack: 0, defense: 0, availability: 0 }
+            }
+          }
+        }
+      }
       if (loaded.poster) {
         adminGameInfo.poster = loaded.poster
         singleGame.poster = loaded.poster
@@ -658,6 +680,80 @@ async function handleRequest(req: Request): Promise<Response> {
           'Access-Control-Allow-Origin': '*',
         },
       })
+    }
+
+    // 4c. Challenge Attachment Downloads
+    if (path.startsWith('/attachments/')) {
+      const filename = path.replace('/attachments/', '').split('?')[0]
+      const decodedFilename = decodeURIComponent(filename)
+      const possiblePaths = [
+        `./build/attachments/${decodedFilename}`,
+        `./public/attachments/${decodedFilename}`,
+        `./build/attachments/${filename}`,
+        `./public/attachments/${filename}`,
+      ]
+      for (const p of possiblePaths) {
+        if (existsSync(p)) {
+          const file = Bun.file(p)
+          return new Response(file, {
+            headers: {
+              'Content-Type': 'application/zip',
+              'Content-Disposition': `attachment; filename="${filename}"`,
+              'Access-Control-Allow-Origin': '*',
+            },
+          })
+        }
+      }
+    }
+
+    if (path.match(/\/api\/(?:game|Game)\/\d+\/(?:challenges|Challenges)\/(\d+)\/(?:attachment|Attachment)/i)) {
+      const match = path.match(/\/api\/(?:game|Game)\/\d+\/(?:challenges|Challenges)\/(\d+)\/(?:attachment|Attachment)/i)
+      const cId = parseInt(match![1])
+      const fileMap: Record<number, string> = {
+        1: 'playground.zip',
+        2: 'cpppp.zip',
+        3: 'classic-api.zip',
+        4: 'coloring.zip',
+      }
+      const filename = fileMap[cId] || 'attachment.zip'
+      const possiblePaths = [
+        `./build/attachments/${filename}`,
+        `./public/attachments/${filename}`,
+      ]
+      for (const p of possiblePaths) {
+        if (existsSync(p)) {
+          const file = Bun.file(p)
+          return new Response(file, {
+            headers: {
+              'Content-Type': 'application/zip',
+              'Content-Disposition': `attachment; filename="${filename}"`,
+              'Access-Control-Allow-Origin': '*',
+            },
+          })
+        }
+      }
+    }
+
+    if (path.startsWith('/api/ad/attachment/')) {
+      const rawName = path.replace('/api/ad/attachment/', '').split('?')[0]
+      const decoded = decodeURIComponent(rawName)
+      const filename = decoded.endsWith('.zip') ? decoded : `${decoded}.zip`
+      const possiblePaths = [
+        `./build/attachments/${filename}`,
+        `./public/attachments/${filename}`,
+      ]
+      for (const p of possiblePaths) {
+        if (existsSync(p)) {
+          const file = Bun.file(p)
+          return new Response(file, {
+            headers: {
+              'Content-Type': 'application/zip',
+              'Content-Disposition': `attachment; filename="${filename}"`,
+              'Access-Control-Allow-Origin': '*',
+            },
+          })
+        }
+      }
     }
 
     // 5. Flag Submission Endpoint (Single & Batch)
@@ -1032,13 +1128,13 @@ async function handleRequest(req: Request): Promise<Response> {
         {
           challenges: {
             Crypto: [
-              { id: 1, title: 'simple-crypto', category: 'Crypto', score: 1000, solved: 0, bloods: [], disableBloodBonus: false },
+              { id: 1, title: 'playground', category: 'Crypto', score: 1000, solved: 0, bloods: [], disableBloodBonus: false },
             ],
             Pwn: [
-              { id: 2, title: 'simple-pwn', category: 'Pwn', score: 1000, solved: 0, bloods: [], disableBloodBonus: false },
+              { id: 2, title: '(C)PPPP!', category: 'Pwn', score: 1000, solved: 0, bloods: [], disableBloodBonus: false },
             ],
             Web: [
-              { id: 3, title: 'simple-web', category: 'Web', score: 1000, solved: 0, bloods: [], disableBloodBonus: false },
+              { id: 3, title: 'classic-api', category: 'Web', score: 1000, solved: 0, bloods: [], disableBloodBonus: false },
               { id: 4, title: 'coloring', category: 'Web', score: 1000, solved: 0, bloods: [], disableBloodBonus: false },
             ],
           },
@@ -1174,9 +1270,9 @@ async function handleRequest(req: Request): Promise<Response> {
       }
       return Response.json(
         [
-          { id: 1, title: 'simple-crypto', category: 'Crypto', score: 1000, type: 'Normal', isEnabled: true },
-          { id: 2, title: 'simple-pwn', category: 'Pwn', score: 1000, type: 'Normal', isEnabled: true },
-          { id: 3, title: 'simple-web', category: 'Web', score: 1000, type: 'Normal', isEnabled: true },
+          { id: 1, title: 'playground', category: 'Crypto', score: 1000, type: 'Normal', isEnabled: true },
+          { id: 2, title: '(C)PPPP!', category: 'Pwn', score: 1000, type: 'Normal', isEnabled: true },
+          { id: 3, title: 'classic-api', category: 'Web', score: 1000, type: 'Normal', isEnabled: true },
           { id: 4, title: 'coloring', category: 'Web', score: 1000, type: 'Normal', isEnabled: true },
         ],
         { headers }
@@ -1188,10 +1284,10 @@ async function handleRequest(req: Request): Promise<Response> {
     if (chalDetailMatch) {
       const cId = parseInt(chalDetailMatch[1])
       const chalMap: Record<number, any> = {
-        1: { id: 1, title: 'simple-crypto', category: 'Crypto', port: 8001 },
-        2: { id: 2, title: 'simple-pwn', category: 'Pwn', port: 8002 },
-        3: { id: 3, title: 'simple-web', category: 'Web', port: 8003 },
-        4: { id: 4, title: 'coloring', category: 'Web', port: 8004 },
+        1: { id: 1, title: 'playground', category: 'Crypto', port: 6969, attachment: 'playground.zip' },
+        2: { id: 2, title: '(C)PPPP!', category: 'Pwn', port: 7070, attachment: 'cpppp.zip' },
+        3: { id: 3, title: 'classic-api', category: 'Web', port: 1337, attachment: 'classic-api.zip' },
+        4: { id: 4, title: 'coloring', category: 'Web', port: 8082, attachment: 'coloring.zip' },
       }
       const cInfo = chalMap[cId] || { id: cId, title: `Service #${cId}`, category: 'Web', port: 8000 + cId }
       if (req.method === 'PUT') {
@@ -1218,6 +1314,12 @@ async function handleRequest(req: Request): Promise<Response> {
           score: 1000,
           content: `Layanan **${cInfo.title}** aktif pada target instance. Lindungi source code aplikasi dan perbaiki celah vulnerability sebelum dieksploitasi oleh tim lawan! Flag akan dirotasi otomatis setiap tick.`,
           hints: [`Service aktif pada port ${cInfo.port}`, 'Akses melalui IP Team / WireGuard VPN'],
+          attachment: cInfo.attachment ? {
+            type: 'Local',
+            url: `/attachments/${cInfo.attachment}`,
+            fileName: cInfo.attachment,
+            fileSize: 10240,
+          } : null,
           isEnabled: true,
           acceptedCount: 5,
           solved: false,
@@ -1526,9 +1628,9 @@ async function handleRequest(req: Request): Promise<Response> {
     if (path.match(/\/api\/game\/\d+\/challenges/)) {
       return Response.json(
         [
-          { id: 1, title: 'simple-crypto', category: 'Crypto', score: 1000, type: 'Normal' },
-          { id: 2, title: 'simple-pwn', category: 'Pwn', score: 1000, type: 'Normal' },
-          { id: 3, title: 'simple-web', category: 'Web', score: 1000, type: 'Normal' },
+          { id: 1, title: 'playground', category: 'Crypto', score: 1000, type: 'Normal' },
+          { id: 2, title: '(C)PPPP!', category: 'Pwn', score: 1000, type: 'Normal' },
+          { id: 3, title: 'classic-api', category: 'Web', score: 1000, type: 'Normal' },
           { id: 4, title: 'coloring', category: 'Web', score: 1000, type: 'Normal' },
         ],
         { headers }

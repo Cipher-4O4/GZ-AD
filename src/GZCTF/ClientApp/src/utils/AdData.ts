@@ -19,6 +19,7 @@ export interface AdTeam {
 export interface AdService {
   id: number
   key: string
+  title?: string
   category: 'Crypto' | 'Pwn' | 'Web'
   color: string
   author: string
@@ -156,51 +157,55 @@ export const AD_TEAMS_BY_RANK = [...AD_TEAMS].sort((a, b) => a.rank - b.rank)
 export const AD_SERVICES: AdService[] = [
   {
     id: 1,
-    key: 'simple-crypto',
+    key: 'playground',
+    title: 'playground',
     category: 'Crypto',
     color: '#9775fa',
-    author: 'rootkids',
-    description: 'A tiny signing oracle. Recover the key before it rotates.',
-    attachment: 'simple-crypto.tar.gz',
+    author: 'idzoyy',
+    description: 'play with me.',
+    attachment: 'playground.zip',
     target: '10.43.170.150:6969',
-    defendingFlag: 'flag{ionic26_7_simple-crypto_defend}',
+    defendingFlag: 'flag{ionic26_7_playground_defend}',
     ssh: 'nc 10.43.170.150 6969',
     checks: 'OK',
   },
   {
     id: 2,
-    key: 'simple-pwn',
+    key: 'cpppp',
+    title: '(C)PPPP!',
     category: 'Pwn',
     color: '#fa5252',
-    author: 'rootkids',
-    description: 'Just a normal very very classic binary, right? No seccomp, no fun.',
-    attachment: 'simple-pwn.tar.gz',
+    author: 'mirai',
+    description: 'this song is so catchy. https://youtu.be/8Cm-7oCq9HA',
+    attachment: 'cpppp.zip',
     target: '10.43.170.150:7070',
-    defendingFlag: 'flag{ionic26_7_simple-pwn_defend}',
+    defendingFlag: 'flag{ionic26_7_cpppp_defend}',
     ssh: 'nc 10.43.170.150 7070',
     checks: 'OK',
   },
   {
     id: 3,
-    key: 'simple-web',
+    key: 'classic-api',
+    title: 'classic-api',
     category: 'Web',
     color: '#4dabf7',
     author: 'rootkids',
-    description: 'Classic API service with hidden endpoints and privilege escalation.',
-    attachment: 'simple-web.tar.gz',
+    description: 'Just a normal very very classic api, right? this doesnt have an ui yet.',
+    attachment: 'classic-api.zip',
     target: 'http://10.43.170.150:1337',
-    defendingFlag: 'flag{ionic26_7_simple-web_defend}',
+    defendingFlag: 'flag{ionic26_7_classic-api_defend}',
     ssh: 'http://10.43.170.150:1337',
     checks: 'OK',
   },
   {
     id: 4,
     key: 'coloring',
+    title: 'coloring',
     category: 'Web',
     color: '#20c997',
-    author: 'rootkids',
-    description: 'Collaborative live canvas painting service. Exploit the server logic to steal session flags.',
-    attachment: 'coloring.tar.gz',
+    author: 'abdiery',
+    description: 'Coloring is the activity or process of adding color to a drawing, picture, or other visual material, usually by using tools such as crayons, colored pencils, markers, or paint.',
+    attachment: 'coloring.zip',
     target: 'http://10.43.170.150:8082',
     defendingFlag: 'flag{ionic26_7_coloring_defend}',
     ssh: 'http://10.43.170.150:8082',
@@ -209,11 +214,11 @@ export const AD_SERVICES: AdService[] = [
 ]
 
 export const AD_ACTIVITY: AdActivity[] = [
-  { time: '15:53:45', service: 'simple-pwn', text: 'Z3RODAY → WilSec - BOEDOET 47 (Flag captured!)', color: '#fab005' },
-  { time: '15:53:45', service: 'simple-crypto', text: 'Offset e offside → SMAPa 2 (Flag captured!)', color: '#fab005' },
-  { time: '15:53:45', service: 'simple-crypto', text: 'Gangantua - MUMBLE', color: '#ff922b' },
-  { time: '15:53:44', service: 'simple-web', text: 'United Shell-SCC → WilSec - Apa aja (Flag captured!)', color: '#fa5252' },
-  { time: '15:53:40', service: 'simple-pwn', text: 'rootsanctum → Maaf TKA Pilih CTF (Flag captured!)', color: '#4dabf7' },
+  { time: '15:53:45', service: 'cpppp', text: 'Z3RODAY → WilSec - BOEDOET 47 (Flag captured!)', color: '#fab005' },
+  { time: '15:53:45', service: 'playground', text: 'Offset e offside → SMAPa 2 (Flag captured!)', color: '#fab005' },
+  { time: '15:53:45', service: 'playground', text: 'Gangantua - MUMBLE', color: '#ff922b' },
+  { time: '15:53:44', service: 'classic-api', text: 'United Shell-SCC → WilSec - Apa aja (Flag captured!)', color: '#fa5252' },
+  { time: '15:53:40', service: 'coloring', text: 'rootsanctum → Maaf TKA Pilih CTF (Flag captured!)', color: '#4dabf7' },
 ]
 
 const seeded = (n: number, salt: number) => {
@@ -229,9 +234,10 @@ const buildCells = (rank: number, base: number) => {
   })
 
   return {
-    'simple-crypto': cell(1, 0.19),
-    'simple-pwn': cell(4, 0.15),
-    'simple-web': cell(7, 0.19),
+    playground: cell(1, 0.19),
+    cpppp: cell(4, 0.15),
+    'classic-api': cell(7, 0.19),
+    coloring: cell(10, 0.18),
   }
 }
 

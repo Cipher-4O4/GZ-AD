@@ -238,19 +238,19 @@ export const AttackMap: FC = () => {
   >([
     {
       time: '15.53.45',
-      service: 'simple-crypto',
+      service: 'playground',
       text: 'Z3RODAY → WilSec - BOEDOET 47 (Flag captured!)',
       isNuke: true,
     },
     {
       time: '15.53.45',
-      service: 'simple-crypto',
+      service: 'cpppp',
       text: 'United Shell-SCC → Maaf TKA Pilih CTF (Flag captured!)',
       isNuke: true,
     },
     {
       time: '15.53.44',
-      service: 'simple-web',
+      service: 'classic-api',
       text: 'rootsanctum → WilSec - Apa aja (Flag captured!)',
       isNuke: true,
     },
