@@ -58,7 +58,8 @@ export const useTeams = () => {
     revalidateOnFocus: false,
   })
 
-  return { teams, error, mutate }
+  const safeTeams = Array.isArray(teams) ? teams : []
+  return { teams: safeTeams, error, mutate }
 }
 
 export const useLogOut = () => {

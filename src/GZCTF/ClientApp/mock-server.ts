@@ -1488,8 +1488,8 @@ async function handleRequest(req: Request): Promise<Response> {
     if (path.match(/\/api\/game\/\d+$/)) {
       const activeGame = {
         ...singleGame,
-        teamName: loggedInUser?.team?.name || null,
-        status: loggedInUser ? 'Accepted' : 'Unsubmitted',
+        teamName: loggedInUser?.team?.name || 'Z3RODAY',
+        status: 'Accepted',
       }
       return Response.json(activeGame, { headers })
     }

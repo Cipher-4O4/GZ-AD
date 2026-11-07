@@ -194,7 +194,7 @@ export const TeamEditModal: FC<TeamEditModalProps> = (props) => {
         icon: <Icon path={mdiCheck} size={1} />,
       })
       mutateTeams(
-        teams?.map((x) => (x.id === teamInfo.id ? teamInfo : x)),
+        Array.isArray(teams) ? teams.map((x) => (x.id === teamInfo.id ? teamInfo : x)) : [],
         {
           revalidate: false,
         }
@@ -216,7 +216,7 @@ export const TeamEditModal: FC<TeamEditModalProps> = (props) => {
         icon: <Icon path={mdiCheck} size={1} />,
       })
       mutateTeams(
-        teams?.map((x) => (x.id === teamInfo.id ? teamInfo : x)),
+        Array.isArray(teams) ? teams.map((x) => (x.id === teamInfo.id ? teamInfo : x)) : [],
         {
           revalidate: false,
         }
@@ -270,7 +270,7 @@ export const TeamEditModal: FC<TeamEditModalProps> = (props) => {
       const newTeamInfo = { ...teamInfo, avatar: data.data }
       setTeamInfo(newTeamInfo)
       mutateTeams(
-        teams?.map((x) => (x.id === teamInfo.id ? newTeamInfo : x)),
+        Array.isArray(teams) ? teams.map((x) => (x.id === teamInfo.id ? newTeamInfo : x)) : [],
         {
           revalidate: false,
         }
@@ -302,7 +302,7 @@ export const TeamEditModal: FC<TeamEditModalProps> = (props) => {
         icon: <Icon path={mdiCheck} size={1} />,
       })
       mutateTeams(
-        teams?.map((x) => (x.id === teamInfo.id ? teamInfo : x)),
+        Array.isArray(teams) ? teams.map((x) => (x.id === teamInfo.id ? teamInfo : x)) : [],
         {
           revalidate: false,
         }

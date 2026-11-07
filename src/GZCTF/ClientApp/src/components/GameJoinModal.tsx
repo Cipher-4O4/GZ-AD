@@ -11,7 +11,8 @@ import { useSyncOnChange } from '@Hooks/useSyncOnChange'
 import { useTeams } from '@Hooks/useUser'
 import api, { GameJoinModel, DetailedGameInfoModel } from '@Api'
 
-const defaultTeam = (teams?: { id?: number | null }[]) => (teams && teams.length >= 1 ? teams[0].id!.toString() : null)
+const defaultTeam = (teams?: { id?: number | null }[]) =>
+  Array.isArray(teams) && teams.length >= 1 && teams[0].id ? teams[0].id.toString() : null
 
 const defaultDivisionId = (game?: DetailedGameInfoModel) => {
   if (typeof game?.division === 'number') return game.division.toString()
@@ -73,7 +74,7 @@ export const GameJoinModal: FC<GameJoinModalProps> = (props) => {
   )
 
   const teamsData = useMemo(() => {
-    return teams?.map((t) => ({ label: t.name!, value: t.id!.toString() })) ?? []
+    return Array.isArray(teams) ? teams.map((t) => ({ label: t.name!, value: t.id!.toString() })) : []
   }, [teams])
 
   const joinedTeam = team ? gameCheckInfo.get(team) : null

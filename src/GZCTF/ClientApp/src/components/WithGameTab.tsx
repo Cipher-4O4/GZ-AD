@@ -10,6 +10,7 @@ import { useLocation, useNavigate, useParams } from 'react-router'
 import { GameProgress } from '@Components/GameProgress'
 import { IconTabs } from '@Components/IconTabs'
 import { RequireRole } from '@Components/WithRole'
+import { isAdGame } from '@Utils/Ad'
 import { DEFAULT_LOADING_OVERLAY } from '@Utils/Shared'
 import { getGameStatus, useGame } from '@Hooks/useGame'
 import { usePageTitle } from '@Hooks/usePageTitle'
@@ -99,7 +100,7 @@ export const WithGameTab: FC<React.PropsWithChildren> = ({ children }) => {
 
   const filteredPages = pages
     .filter((p) => RequireRole(p.requireRole, role))
-    .filter((p) => !p.requireJoin || game?.status === ParticipationStatus.Accepted)
+    .filter((p) => !p.requireJoin || isAdGame(game) || game?.status === ParticipationStatus.Accepted)
     .filter((p) => !p.requireJoin || !finished || game?.practiceMode)
 
   const tabs = filteredPages.map((p) => ({
@@ -158,7 +159,7 @@ export const WithGameTab: FC<React.PropsWithChildren> = ({ children }) => {
             message: t('game.notification.suspended'),
             icon: <Icon path={mdiExclamationThick} size={1} />,
           })
-        } else if (status !== ParticipationStatus.Accepted) {
+        } else if (!isAdGame(game) && status !== ParticipationStatus.Accepted) {
           navigate(`/games/${numId}`)
           showNotification({
             id: 'no-access',
