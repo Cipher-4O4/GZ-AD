@@ -937,6 +937,70 @@ async function handleRequest(req: Request): Promise<Response> {
       return Response.json({ type: 'None' }, { headers })
     }
 
+    if (path.includes('/account/register') || path === '/api/account/register') {
+      let u = 'Super Admin'
+      let email = 'admin@ionic.id'
+      try {
+        const body = await req.json().catch(() => ({}))
+        if (body.userName) u = body.userName
+        if (body.email) email = body.email
+      } catch {}
+
+      const cleanU = u.trim().toLowerCase()
+      if (cleanU === 'admin' || cleanU.includes('admin')) {
+        loggedInUser = {
+          id: 'admin_1',
+          userName: u || 'Admin',
+          role: 'Admin',
+          team: {
+            id: 0,
+            name: 'Panitia IONIC 2026',
+            bio: 'Administrator Platform IONIC 2026',
+            avatar: null,
+            memberCount: 1,
+            locked: true,
+            members: [{ id: 'admin_1', userName: u || 'Admin', captain: true }],
+          },
+        }
+      } else {
+        let teamIdx = 1
+        const teamNumMatch = cleanU.match(/(\d+)/)
+        if (teamNumMatch) {
+          const num = parseInt(teamNumMatch[1])
+          if (num >= 401 && num <= 410) {
+            teamIdx = num - 400
+          } else if (num >= 1 && num <= 10) {
+            teamIdx = num
+          }
+        }
+        const targetTeam = INITIAL_TEAMS.find((t) => t.id === teamIdx) || INITIAL_TEAMS[0]
+        loggedInUser = {
+          id: `user_${Date.now()}`,
+          userName: u,
+          role: 'User',
+          team: {
+            id: targetTeam.id,
+            name: targetTeam.name,
+            bio: targetTeam.school,
+            avatar: targetTeam.logo,
+            memberCount: 3,
+            locked: false,
+            members: [
+              { id: `user_${Date.now()}`, userName: u, captain: true },
+            ],
+          },
+        }
+      }
+
+      return Response.json(
+        {
+          title: 'Registrasi Berhasil',
+          data: 'LoggedIn',
+        },
+        { headers }
+      )
+    }
+
     if (path.includes('/account/login') || path === '/api/account/login') {
       let u = 'admin'
       let p = ''
@@ -947,10 +1011,10 @@ async function handleRequest(req: Request): Promise<Response> {
       } catch {}
 
       const cleanU = u.trim().toLowerCase()
-      if (cleanU === 'admin' || cleanU.startsWith('admin')) {
+      if (cleanU === 'admin' || cleanU.startsWith('admin') || cleanU.includes('admin')) {
         loggedInUser = {
           id: 'admin_1',
-          userName: 'Admin',
+          userName: u || 'Admin',
           role: 'Admin',
           team: {
             id: 0,
@@ -1377,21 +1441,22 @@ async function handleRequest(req: Request): Promise<Response> {
       return Response.json({ total: 1, data: [singleGame] }, { headers })
     }
 
+    const samplePost = {
+      id: 1,
+      title: 'Selamat Datang di Final Attack & Defense IONIC 2026',
+      summary: 'Kompetisi babak Final Cybersecurity IONIC 2026 resmi dimulai!',
+      content: '10 Tim Finalis bertanding secara realtime mempertahankan service dan mengeksploitasi celah lawan. Perhatikan timer tick dan round!',
+      time: new Date().toISOString(),
+      isPinned: true,
+      author: 'Panitia IONIC 2026',
+    }
+
+    if (path.match(/\/api\/posts\/\d+$/)) {
+      return Response.json(samplePost, { headers })
+    }
+
     if (path.includes('/posts') || path.includes('/post')) {
-      return Response.json(
-        [
-          {
-            id: 1,
-            title: 'Selamat Datang di Final Attack & Defense IONIC 2026',
-            summary: 'Kompetisi babak Final Cybersecurity IONIC 2026 resmi dimulai!',
-            content: '10 Tim Finalis bertanding secara realtime mempertahankan service dan mengeksploitasi celah lawan. Perhatikan timer tick dan round!',
-            time: new Date().toISOString(),
-            isPinned: true,
-            author: 'Panitia IONIC 2026',
-          },
-        ],
-        { headers }
-      )
+      return Response.json([samplePost], { headers })
     }
 
     // 10. User Team Endpoints
