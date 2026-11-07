@@ -455,10 +455,10 @@ export const ADScoreboard: FC = () => {
 
                   {/* Service Specific Sub-columns (Attack, Defense, Availability) */}
                   {AD_SERVICES.map((service) => {
-                    const cell = row.services[service.key]
+                    const cell = row.services?.[service.key] ?? { attack: 0, defense: 0, availability: 0 }
 
                     return SUB_COLUMNS.map((column) => {
-                      const value = cell[column.key]
+                      const value = cell?.[column.key] ?? 0
                       const isAttack = column.key === 'attack'
 
                       return (

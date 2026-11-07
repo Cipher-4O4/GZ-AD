@@ -1,0 +1,393 @@
+{
+  "round": 1,
+  "tick": 1,
+  "maxTick": 5,
+  "tickSeconds": 60,
+  "totalTickCount": 1,
+  "lastTickTimestamp": 1794029867911,
+  "isPaused": false,
+  "teams": [
+    {
+      "id": 1,
+      "code": "T401",
+      "name": "United Shell-SCC",
+      "school": "SMK NEGERI 7 SEMARANG",
+      "logo": "/logos/smkn7-semarang.png",
+      "ip": "172.0.9.2",
+      "rank": 1,
+      "score": 0,
+      "captures": 0,
+      "status": "Operational",
+      "services": {
+        "simple-crypto": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "simple-pwn": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "simple-web": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "coloring": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "code": "T402",
+      "name": "rootsanctum",
+      "school": "SMK NEGERI 7 SEMARANG",
+      "logo": "/logos/smkn7-semarang.png",
+      "ip": "172.0.9.3",
+      "rank": 2,
+      "score": 0,
+      "captures": 0,
+      "status": "Operational",
+      "services": {
+        "simple-crypto": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "simple-pwn": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "simple-web": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "coloring": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "code": "T403",
+      "name": "WilSec - Apa aja",
+      "school": "SMK NEGERI 1 JAKARTA",
+      "logo": "/logos/smkn1-jakarta.png",
+      "ip": "172.0.9.4",
+      "rank": 3,
+      "score": 0,
+      "captures": 0,
+      "status": "Operational",
+      "services": {
+        "simple-crypto": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "simple-pwn": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "simple-web": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "coloring": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "code": "T404",
+      "name": "Maaf TKA Pilih CTF",
+      "school": "MA NEGERI 3 JEMBER",
+      "logo": "/logos/man3-jember.png",
+      "ip": "172.0.9.5",
+      "rank": 4,
+      "score": 0,
+      "captures": 0,
+      "status": "Operational",
+      "services": {
+        "simple-crypto": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "simple-pwn": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "simple-web": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "coloring": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "code": "T405",
+      "name": "WilSec - BOEDOET 47",
+      "school": "SMK NEGERI 1 JAKARTA",
+      "logo": "/logos/smkn1-jakarta.png",
+      "ip": "172.0.9.6",
+      "rank": 5,
+      "score": 0,
+      "captures": 0,
+      "status": "Operational",
+      "services": {
+        "simple-crypto": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "simple-pwn": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "simple-web": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "coloring": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "code": "T406",
+      "name": "kata magfi \"bebas\"",
+      "school": "SMK NEGERI 21 JAKARTA",
+      "logo": "/logos/smkn21-jakarta.png",
+      "ip": "172.0.9.7",
+      "rank": 6,
+      "score": 0,
+      "captures": 0,
+      "status": "Operational",
+      "services": {
+        "simple-crypto": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "simple-pwn": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "simple-web": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "coloring": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        }
+      }
+    },
+    {
+      "id": 7,
+      "code": "T407",
+      "name": "Z3RODAY",
+      "school": "SMK NEGERI 1 BOYOLANGU",
+      "logo": "/logos/smkn1-boyolangu.png",
+      "ip": "172.0.9.8",
+      "rank": 7,
+      "score": 0,
+      "captures": 0,
+      "status": "Operational",
+      "services": {
+        "simple-crypto": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "simple-pwn": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "simple-web": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "coloring": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "code": "T408",
+      "name": "Gangantua",
+      "school": "SMK NEGERI 3 TUBAN",
+      "logo": "/logos/smkn3-tuban.png",
+      "ip": "172.0.9.9",
+      "rank": 8,
+      "score": 0,
+      "captures": 0,
+      "status": "Operational",
+      "services": {
+        "simple-crypto": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "simple-pwn": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "simple-web": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "coloring": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        }
+      }
+    },
+    {
+      "id": 9,
+      "code": "T409",
+      "name": "WilSec - Panitia",
+      "school": "SMK NEGERI 1 JAKARTA",
+      "logo": "/logos/smkn1-jakarta.png",
+      "ip": "172.0.9.10",
+      "rank": 9,
+      "score": 0,
+      "captures": 0,
+      "status": "Operational",
+      "services": {
+        "simple-crypto": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "simple-pwn": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "simple-web": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "coloring": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        }
+      }
+    },
+    {
+      "id": 10,
+      "code": "T410",
+      "name": "Duo Perncari Flag",
+      "school": "SMKS MASKUMAMBANG 1 DUKUN",
+      "logo": "/logos/smk-maskumambang-dukun.png",
+      "ip": "172.0.9.11",
+      "rank": 10,
+      "score": 0,
+      "captures": 0,
+      "status": "Operational",
+      "services": {
+        "simple-crypto": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "simple-pwn": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "simple-web": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        },
+        "coloring": {
+          "attack": 0,
+          "defense": 0,
+          "availability": 0,
+          "status": "UP"
+        }
+      }
+    }
+  ],
+  "flags": {},
+  "attacks": []
+}

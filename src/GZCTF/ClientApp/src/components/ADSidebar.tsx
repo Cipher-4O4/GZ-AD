@@ -1,5 +1,6 @@
 import {
   Avatar,
+  Badge,
   Box,
   Button,
   Card,
@@ -12,7 +13,15 @@ import {
   Textarea,
 } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
-import { mdiBriefcaseOutline, mdiCheck, mdiClose, mdiKey, mdiOpenInNew, mdiSwordCross } from '@mdi/js'
+import {
+  mdiBriefcaseOutline,
+  mdiCheck,
+  mdiClose,
+  mdiKey,
+  mdiOpenInNew,
+  mdiShieldCrownOutline,
+  mdiSwordCross,
+} from '@mdi/js'
 import { Icon } from '@mdi/react'
 import dayjs from 'dayjs'
 import { FC, useEffect, useMemo, useState } from 'react'
@@ -21,7 +30,8 @@ import { ADToolkitModal } from '@Components/ADToolkitModal'
 import { AdColors } from '@Utils/Ad'
 import { OnceSWRConfig } from '@Hooks/useConfig'
 import { useGameTeamInfo } from '@Hooks/useGame'
-import api, { NoticeType } from '@Api'
+import { useUser } from '@Hooks/useUser'
+import api, { NoticeType, Role } from '@Api'
 
 type FeedTab = 'all' | 'notice' | 'berita' | 'challenge'
 
@@ -40,6 +50,9 @@ const cardStyle = {
 export const ADSidebar: FC = () => {
   const { id } = useParams()
   const numId = parseInt(id ?? '5')
+
+  const { user } = useUser()
+  const isAdmin = user?.role === Role.Admin || user?.role === 'Admin'
 
   const { teamInfo } = useGameTeamInfo(numId)
   const { data: notices } = api.game.useGameNotices(numId, {}, OnceSWRConfig)
@@ -256,61 +269,115 @@ export const ADSidebar: FC = () => {
         A&amp;D Toolkit
       </Button>
 
-      {/* 5. Team card */}
-      <Card p="md" radius={8} styles={{ root: cardStyle }}>
-        <Group gap={10} wrap="nowrap" mb={10}>
-          <Avatar size={44} radius="xl" src={rank?.avatar || undefined} color="teal">
-            {rank?.name?.slice(0, 1) ?? 'T'}
-          </Avatar>
-          <Text fz={15} fw={700} truncate style={{ color: '#fff' }}>
-            {rank?.name ?? 'Team'}
-          </Text>
-        </Group>
+      {/* 5. Team / Panitia card */}
+      {isAdmin ? (
+        <Card p="md" radius={8} styles={{ root: cardStyle }}>
+          <Group gap={10} wrap="nowrap" mb={8}>
+            <Avatar size={42} radius="xl" color="teal">
+              <Icon path={mdiShieldCrownOutline} size={1} />
+            </Avatar>
+            <Stack gap={2}>
+              <Text fz={14} fw={700} truncate style={{ color: '#fff' }}>
+                Panitia IONIC 2026
+              </Text>
+              <Group gap={6}>
+                <Badge size="xs" variant="filled" color="teal">
+                  Super Admin
+                </Badge>
+                <Badge size="xs" variant="outline" color="gray">
+                  Pengawas
+                </Badge>
+              </Group>
+            </Stack>
+          </Group>
 
-        <Group grow gap={4} ta="center" mb={10}>
-          {[
-            ['Overall', rank?.rank ?? '-'],
-            ['Skor', rank?.score ?? 0],
-            ['Solved', rank?.solvedCount ?? 0],
-          ].map(([label, value]) => (
-            <Stack key={String(label)} gap={2} align="center">
-              <Text ff="monospace" fz={14} fw={800} style={{ color: '#fff' }}>
-                {value}
+          <Text fz={11} c="dimmed" mb={10} lh={1.4}>
+            Mode Pengawasan Aktif · Monitoring 10 Tim Peserta &amp; 4 Services
+          </Text>
+
+          <Group grow gap={4} ta="center" pt={4} style={{ borderTop: `1px solid ${AdColors.border}` }}>
+            <Stack gap={1} align="center">
+              <Text ff="monospace" fz={13} fw={800} style={{ color: '#40c057' }}>
+                ONLINE
               </Text>
               <Text fz={10} style={{ color: AdColors.dimmer }}>
-                {label}
+                Status
               </Text>
             </Stack>
-          ))}
-        </Group>
+            <Stack gap={1} align="center">
+              <Text ff="monospace" fz={13} fw={800} style={{ color: '#fff' }}>
+                10 TIM
+              </Text>
+              <Text fz={10} style={{ color: AdColors.dimmer }}>
+                Finalis
+              </Text>
+            </Stack>
+            <Stack gap={1} align="center">
+              <Text ff="monospace" fz={13} fw={800} style={{ color: '#38d9a9' }}>
+                100%
+              </Text>
+              <Text fz={10} style={{ color: AdColors.dimmer }}>
+                SLA System
+              </Text>
+            </Stack>
+          </Group>
+        </Card>
+      ) : (
+        <Card p="md" radius={8} styles={{ root: cardStyle }}>
+          <Group gap={10} wrap="nowrap" mb={10}>
+            <Avatar size={44} radius="xl" src={rank?.avatar || undefined} color="teal">
+              {rank?.name?.slice(0, 1) ?? 'T'}
+            </Avatar>
+            <Text fz={15} fw={700} truncate style={{ color: '#fff' }}>
+              {rank?.name ?? 'Team'}
+            </Text>
+          </Group>
 
-        <Progress
-          value={solvedRatio * 100}
-          size={5}
-          radius={3}
-          styles={{ section: { backgroundColor: AdColors.primary }, root: { backgroundColor: '#23252b' } }}
-        />
+          <Group grow gap={4} ta="center" mb={10}>
+            {[
+              ['Overall', rank?.rank ?? '-'],
+              ['Skor', rank?.score ?? 0],
+              ['Solved', rank?.solvedCount ?? 0],
+            ].map(([label, value]) => (
+              <Stack key={String(label)} gap={2} align="center">
+                <Text ff="monospace" fz={14} fw={800} style={{ color: '#fff' }}>
+                  {value}
+                </Text>
+                <Text fz={10} style={{ color: AdColors.dimmer }}>
+                  {label}
+                </Text>
+              </Stack>
+            ))}
+          </Group>
 
-        <PasswordInput
-          mt={10}
-          value={teamInfo?.teamToken ?? 'ad_token'}
-          readOnly
-          size="xs"
-          leftSection={<Icon path={mdiKey} size={0.7} color={AdColors.dimmer} />}
-          styles={{
-            input: {
-              backgroundColor: 'transparent',
-              border: 'none',
-              color: AdColors.dim,
-              fontFamily: AdColors.mono,
-              fontSize: 11,
-              paddingLeft: 26,
-            },
-            innerInput: { color: AdColors.dim, fontFamily: AdColors.mono },
-            section: { color: AdColors.dimmer },
-          }}
-        />
-      </Card>
+          <Progress
+            value={solvedRatio * 100}
+            size={5}
+            radius={3}
+            styles={{ section: { backgroundColor: AdColors.primary }, root: { backgroundColor: '#23252b' } }}
+          />
+
+          <PasswordInput
+            mt={10}
+            value={teamInfo?.teamToken ?? 'ad_token'}
+            readOnly
+            size="xs"
+            leftSection={<Icon path={mdiKey} size={0.7} color={AdColors.dimmer} />}
+            styles={{
+              input: {
+                backgroundColor: 'transparent',
+                border: 'none',
+                color: AdColors.dim,
+                fontFamily: AdColors.mono,
+                fontSize: 11,
+                paddingLeft: 26,
+              },
+              innerInput: { color: AdColors.dim, fontFamily: AdColors.mono },
+              section: { color: AdColors.dimmer },
+            }}
+          />
+        </Card>
+      )}
 
       {/* 6. Feed */}
       <Card p="md" radius={8} styles={{ root: cardStyle }}>

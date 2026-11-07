@@ -167,7 +167,7 @@ const Events: FC = () => {
           count: ITEM_COUNT_PER_PAGE,
           skip: (activePage - 1) * ITEM_COUNT_PER_PAGE,
         })
-        setEvents(res.data)
+        setEvents(Array.isArray(res.data) ? res.data : [])
       } catch (err) {
         showNotification({
           color: 'red',
@@ -253,7 +253,7 @@ const Events: FC = () => {
       </Group>
       <ScrollArea viewportRef={viewport} offsetScrollbars h="calc(100vh - 160px)">
         <Stack gap="xs" pr={10} w="100%">
-          {[...(activePage === 1 ? filteredEvents : []), ...(events ?? [])]?.map((event, i) => (
+          {[...(activePage === 1 ? filteredEvents : []), ...(Array.isArray(events) ? events : [])]?.map((event, i) => (
             <Card
               shadow="sm"
               p="xs"

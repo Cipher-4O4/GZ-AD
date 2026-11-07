@@ -102,7 +102,7 @@ const Submissions: FC = () => {
           count: ITEM_COUNT_PER_PAGE,
           skip: (activePage - 1) * ITEM_COUNT_PER_PAGE,
         })
-        setSubmissions(res.data)
+        setSubmissions(Array.isArray(res.data) ? res.data : [])
       } catch (err) {
         showNotification({
           color: 'red',
@@ -157,7 +157,7 @@ const Submissions: FC = () => {
 
   const filteredSubs = newSubmissions.filter((item) => type === 'All' || item.status === type)
 
-  const rows = [...(activePage === 1 ? filteredSubs : []), ...(submissions ?? [])].map((item, i) => (
+  const rows = [...(activePage === 1 ? filteredSubs : []), ...(Array.isArray(submissions) ? submissions : [])].map((item, i) => (
     <Table.Tr
       key={`${item.time}@${i}`}
       className={cx({ [tableClasses.fade]: i === 0 && activePage === 1 && filteredSubs.length > 0 })}

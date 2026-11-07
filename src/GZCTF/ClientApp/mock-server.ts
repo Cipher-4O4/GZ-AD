@@ -105,188 +105,34 @@ export interface AttackLog {
   color: string
 }
 
-const INITIAL_TEAMS: AdTeamData[] = [
-  {
-    id: 1,
-    code: 'T401',
-    name: 'United Shell-SCC',
-    school: 'SMK NEGERI 7 SEMARANG',
-    rank: 1,
-    score: 59087.1,
-    captures: 14,
-    status: 'Operational',
-    logo: '/logos/smkn7-semarang.png',
-    ip: '172.0.9.2',
-    services: {
-      'simple-crypto': { attack: 1420, defense: 480, availability: 120 },
-      'simple-pwn': { attack: 1100, defense: 350, availability: 120 },
-      'simple-web': { attack: 980, defense: 220, availability: 120 },
-      coloring: { attack: 650, defense: 180, availability: 120 },
-    },
-  },
-  {
-    id: 2,
-    code: 'T402',
-    name: 'rootsanctum',
-    school: 'SMK NEGERI 7 SEMARANG',
-    rank: 2,
-    score: 56274.3,
-    captures: 12,
-    status: 'Operational',
-    logo: '/logos/smkn7-semarang.png',
-    ip: '172.0.9.3',
-    services: {
-      'simple-crypto': { attack: 1250, defense: 420, availability: 120 },
-      'simple-pwn': { attack: 1050, defense: 310, availability: 120 },
-      'simple-web': { attack: 890, defense: 190, availability: 120 },
-      coloring: { attack: 610, defense: 150, availability: 120 },
-    },
-  },
-  {
-    id: 3,
-    code: 'T403',
-    name: 'WilSec - Apa aja',
-    school: 'SMK NEGERI 1 JAKARTA',
-    rank: 3,
-    score: 52228.6,
-    captures: 10,
-    status: 'Operational',
-    logo: '/logos/smkn1-jakarta.png',
-    ip: '172.0.9.4',
-    services: {
-      'simple-crypto': { attack: 1100, defense: 380, availability: 120 },
-      'simple-pwn': { attack: 890, defense: 280, availability: 120 },
-      'simple-web': { attack: 780, defense: 160, availability: 120 },
-      coloring: { attack: 520, defense: 130, availability: 120 },
-    },
-  },
-  {
-    id: 4,
-    code: 'T404',
-    name: 'Maaf TKA Pilih CTF',
-    school: 'MA NEGERI 3 JEMBER',
-    rank: 4,
-    score: 48517.1,
-    captures: 9,
-    status: 'Operational',
-    logo: '/logos/man3-jember.png',
-    ip: '172.0.9.5',
-    services: {
-      'simple-crypto': { attack: 950, defense: 320, availability: 120 },
-      'simple-pwn': { attack: 810, defense: 240, availability: 120 },
-      'simple-web': { attack: 710, defense: 140, availability: 120 },
-      coloring: { attack: 480, defense: 110, availability: 120 },
-    },
-  },
-  {
-    id: 5,
-    code: 'T405',
-    name: 'WilSec - BOEDOET 47',
-    school: 'SMK NEGERI 1 JAKARTA',
-    rank: 5,
-    score: 48381.4,
-    captures: 8,
-    status: 'Operational',
-    logo: '/logos/smkn1-jakarta.png',
-    ip: '172.0.9.6',
-    services: {
-      'simple-crypto': { attack: 910, defense: 300, availability: 120 },
-      'simple-pwn': { attack: 790, defense: 220, availability: 120 },
-      'simple-web': { attack: 680, defense: 130, availability: 120 },
-      coloring: { attack: 450, defense: 100, availability: 120 },
-    },
-  },
-  {
-    id: 6,
-    code: 'T406',
-    name: 'kata magfi "bebas"',
-    school: 'SMK NEGERI 21 JAKARTA',
-    rank: 6,
-    score: 47410.0,
-    captures: 7,
-    status: 'Operational',
-    logo: '/logos/smkn21-jakarta.png',
-    ip: '172.0.9.7',
-    services: {
-      'simple-crypto': { attack: 850, defense: 280, availability: 120 },
-      'simple-pwn': { attack: 720, defense: 210, availability: 120 },
-      'simple-web': { attack: 630, defense: 120, availability: 120 },
-      coloring: { attack: 420, defense: 90, availability: 120 },
-    },
-  },
-  {
-    id: 7,
-    code: 'T407',
-    name: 'Z3RODAY',
-    school: 'SMK NEGERI 1 BOYOLANGU',
-    rank: 7,
-    score: 47177.1,
-    captures: 7,
-    status: 'Operational',
-    logo: '/logos/smkn1-boyolangu.png',
-    ip: '172.0.9.8',
-    services: {
-      'simple-crypto': { attack: 840, defense: 270, availability: 120 },
-      'simple-pwn': { attack: 710, defense: 200, availability: 120 },
-      'simple-web': { attack: 620, defense: 110, availability: 120 },
-      coloring: { attack: 410, defense: 85, availability: 120 },
-    },
-  },
-  {
-    id: 8,
-    code: 'T408',
-    name: 'Gangantua',
-    school: 'SMK NEGERI 3 TUBAN',
-    rank: 8,
-    score: 47150.0,
-    captures: 6,
-    status: 'Mumble',
-    logo: '/logos/smkn3-tuban.png',
-    ip: '172.0.9.9',
-    services: {
-      'simple-crypto': { attack: 820, defense: 260, availability: 80 },
-      'simple-pwn': { attack: 680, defense: 190, availability: 80 },
-      'simple-web': { attack: 590, defense: 100, availability: 80 },
-      coloring: { attack: 390, defense: 75, availability: 80 },
-    },
-  },
-  {
-    id: 9,
-    code: 'T409',
-    name: 'WilSec - Panitia',
-    school: 'SMK NEGERI 1 JAKARTA',
-    rank: 9,
-    score: 44544.3,
-    captures: 5,
-    status: 'Operational',
-    logo: '/logos/smkn1-jakarta.png',
-    ip: '172.0.9.10',
-    services: {
-      'simple-crypto': { attack: 750, defense: 240, availability: 120 },
-      'simple-pwn': { attack: 620, defense: 170, availability: 120 },
-      'simple-web': { attack: 540, defense: 90, availability: 120 },
-      coloring: { attack: 360, defense: 70, availability: 120 },
-    },
-  },
-  {
-    id: 10,
-    code: 'T410',
-    name: 'Duo Perncari Flag',
-    school: 'SMKS MASKUMAMBANG 1 DUKUN',
-    rank: 10,
-    score: 44145.7,
-    captures: 4,
-    status: 'Operational',
-    logo: '/logos/smk-maskumambang-dukun.png',
-    ip: '172.0.9.11',
-    services: {
-      'simple-crypto': { attack: 710, defense: 220, availability: 120 },
-      'simple-pwn': { attack: 580, defense: 150, availability: 120 },
-      'simple-web': { attack: 500, defense: 80, availability: 120 },
-      coloring: { attack: 340, defense: 60, availability: 120 },
-    },
-  },
+export const ATTACK_LOGS: any[] = []
+
+const RAW_TEAMS = [
+  { id: 1, code: 'T401', name: 'United Shell-SCC', school: 'SMK NEGERI 7 SEMARANG', logo: '/logos/smkn7-semarang.png', ip: '172.0.9.2' },
+  { id: 2, code: 'T402', name: 'rootsanctum', school: 'SMK NEGERI 7 SEMARANG', logo: '/logos/smkn7-semarang.png', ip: '172.0.9.3' },
+  { id: 3, code: 'T403', name: 'WilSec - Apa aja', school: 'SMK NEGERI 1 JAKARTA', logo: '/logos/smkn1-jakarta.png', ip: '172.0.9.4' },
+  { id: 4, code: 'T404', name: 'Maaf TKA Pilih CTF', school: 'MA NEGERI 3 JEMBER', logo: '/logos/man3-jember.png', ip: '172.0.9.5' },
+  { id: 5, code: 'T405', name: 'WilSec - BOEDOET 47', school: 'SMK NEGERI 1 JAKARTA', logo: '/logos/smkn1-jakarta.png', ip: '172.0.9.6' },
+  { id: 6, code: 'T406', name: 'kata magfi "bebas"', school: 'SMK NEGERI 21 JAKARTA', logo: '/logos/smkn21-jakarta.png', ip: '172.0.9.7' },
+  { id: 7, code: 'T407', name: 'Z3RODAY', school: 'SMK NEGERI 1 BOYOLANGU', logo: '/logos/smkn1-boyolangu.png', ip: '172.0.9.8' },
+  { id: 8, code: 'T408', name: 'Gangantua', school: 'SMK NEGERI 3 TUBAN', logo: '/logos/smkn3-tuban.png', ip: '172.0.9.9' },
+  { id: 9, code: 'T409', name: 'WilSec - Panitia', school: 'SMK NEGERI 1 JAKARTA', logo: '/logos/smkn1-jakarta.png', ip: '172.0.9.10' },
+  { id: 10, code: 'T410', name: 'Duo Perncari Flag', school: 'SMKS MASKUMAMBANG 1 DUKUN', logo: '/logos/smk-maskumambang-dukun.png', ip: '172.0.9.11' },
 ]
+
+const INITIAL_TEAMS: AdTeamData[] = RAW_TEAMS.map((t, idx) => ({
+  ...t,
+  rank: idx + 1,
+  score: 0.0,
+  captures: 0,
+  status: 'Operational',
+  services: {
+    'simple-crypto': { attack: 0, defense: 0, availability: 0 },
+    'simple-pwn': { attack: 0, defense: 0, availability: 0 },
+    'simple-web': { attack: 0, defense: 0, availability: 0 },
+    coloring: { attack: 0, defense: 0, availability: 0 },
+  },
+}))
 
 // Competition State
 interface GameState {
@@ -493,18 +339,16 @@ function advanceTick() {
   // 1. Generate new round flags for all teams
   generateFlagsForTick(state.totalTickCount)
 
-  // 2. Award Availability SLA points to teams whose services are UP (+10 each)
+  // 2. Calculate dynamic score: strictly sum of attack and defense points
   for (const team of state.teams) {
     for (const svc of SERVICES) {
       if (!team.services[svc.key]) {
         team.services[svc.key] = { attack: 0, defense: 0, availability: 0, status: 'UP' } as any
       }
-      const s = (team.services[svc.key] as any).status || 'UP'
-      if (s === 'UP') {
-        team.score += 10
-        team.services[svc.key].availability += 10
-      }
     }
+    const totalAttack = Object.values(team.services).reduce((sum, s) => sum + (s.attack || 0), 0)
+    const totalDefense = Object.values(team.services).reduce((sum, s) => sum + (s.defense || 0), 0)
+    team.score = Math.max(0, totalAttack + totalDefense)
   }
 
   // 3. Re-sort ranking
@@ -548,6 +392,96 @@ const MIME_TYPES: Record<string, string> = {
   '.woff2': 'font/woff2',
   '.ttf': 'font/ttf',
   '.html': 'text/html; charset=utf-8',
+}
+
+let lastSubmitId = 1000
+
+function processFlagSubmission(rawFlags: string[], submitterId = 7) {
+  const attacker = state.teams.find((t) => t.id === submitterId) || state.teams[6] || state.teams[0]
+  let acceptedCount = 0
+  const results: Array<{ flag: string; status: 'accepted' | 'rejected'; message: string; points: number }> = []
+
+  for (const rawFlag of rawFlags) {
+    if (!rawFlag || typeof rawFlag !== 'string') continue
+    const trimmed = rawFlag.trim()
+    if (!trimmed) continue
+
+    // Determine victim and service
+    let victimTeamId = (attacker.id % 10) + 1 // Default enemy team
+    let svcKey = 'simple-crypto'
+
+    const flagRecord = state.flags[trimmed]
+    if (flagRecord) {
+      victimTeamId = flagRecord.teamId
+      svcKey = flagRecord.serviceKey
+    } else {
+      // Dynamic parse if format: flag{ionic26_<victimId>_<svc>_...}
+      const match = trimmed.match(/flag\{ionic26_(\d+)_([a-zA-Z0-9_-]+)/)
+      if (match) {
+        victimTeamId = parseInt(match[1])
+        svcKey = match[2]
+      }
+    }
+
+    if (victimTeamId === attacker.id) {
+      victimTeamId = (attacker.id % 10) + 1
+    }
+
+    const victim = state.teams.find((t) => t.id === victimTeamId) || state.teams[(attacker.id % state.teams.length)]
+
+    // ACCEPTED! No duplicate blocking -> allows rapid testing / spamming
+    acceptedCount += 1
+    attacker.score += 100
+    attacker.captures += 1
+    if (!attacker.services[svcKey]) attacker.services[svcKey] = { attack: 0, defense: 0, availability: 0 }
+    attacker.services[svcKey].attack += 100
+
+    victim.score = Math.max(0, victim.score - 50)
+    if (!victim.services[svcKey]) victim.services[svcKey] = { attack: 0, defense: 0, availability: 0 }
+    victim.services[svcKey].defense = Math.max(0, victim.services[svcKey].defense - 50)
+
+    const attackEvent: AttackLog = {
+      id: `atk_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      time: getTimeStr(),
+      attackerId: attacker.id,
+      victimId: victim.id,
+      service: svcKey,
+      text: `${attacker.name} → ${victim.name} (Flag captured!)`,
+      isNuke: true,
+      color: '#fab005',
+    }
+
+    state.attacks.unshift(attackEvent)
+    if (state.attacks.length > 100) state.attacks.pop()
+
+    // Add to ATTACK_LOGS for admin logs
+    ATTACK_LOGS.unshift({
+      id: attackEvent.id,
+      time: attackEvent.time,
+      attacker: attacker.name,
+      target: victim.name,
+      service: svcKey,
+      status: 'SUCCESS',
+      flag: trimmed,
+    })
+    if (ATTACK_LOGS.length > 100) ATTACK_LOGS.pop()
+
+    results.push({
+      flag: trimmed,
+      status: 'accepted',
+      message: `Flag accepted! +100 Attack Points against ${victim.name}`,
+      points: 100,
+    })
+
+    console.log(`[A&D Flag Captured] 💥 ${attacker.name} captured flag from ${victim.name} on [${svcKey}]! (+100 pts)`)
+  }
+
+  if (acceptedCount > 0) {
+    sortTeams()
+    saveState()
+  }
+
+  return { acceptedCount, totalPoints: acceptedCount * 100, results }
 }
 
 // Main Request Handler
@@ -601,18 +535,28 @@ async function handleRequest(req: Request): Promise<Response> {
           round: state.round,
           tick: state.tick,
           secondsLeft,
-          rows: state.teams.map((t) => ({
-            rank: t.rank,
-            name: t.name,
-            school: t.school,
-            code: t.code,
-            logo: t.logo,
-            captures: t.captures,
-            total: t.score,
-            status: t.status,
-            self: t.name === 'Z3RODAY',
-            services: t.services,
-          })),
+          rows: state.teams.map((t) => {
+            const safeServices: Record<string, { attack: number; defense: number; availability: number }> = {}
+            for (const s of SERVICES) {
+              safeServices[s.key] = {
+                attack: t.services?.[s.key]?.attack ?? 0,
+                defense: t.services?.[s.key]?.defense ?? 0,
+                availability: t.services?.[s.key]?.availability ?? 0,
+              }
+            }
+            return {
+              rank: t.rank,
+              name: t.name,
+              school: t.school,
+              code: t.code,
+              logo: t.logo,
+              captures: t.captures ?? 0,
+              total: t.score ?? 0,
+              status: t.status ?? 'Operational',
+              self: loggedInUser?.team ? t.id === loggedInUser.team.id : false,
+              services: safeServices,
+            }
+          }),
         },
         { headers }
       )
@@ -665,9 +609,8 @@ async function handleRequest(req: Request): Promise<Response> {
       }
 
       try {
-        const body = await req.json()
-        const submitterId = parseInt(body.teamId || '7') // Default submitter: Team 7 (Z3RODAY)
-        const attacker = state.teams.find((t) => t.id === submitterId) || state.teams[6]
+        const body = await req.json().catch(() => ({}))
+        const submitterId = parseInt(body.teamId || (loggedInUser?.team?.id ? String(loggedInUser.team.id) : '7'))
 
         const flagList: string[] = Array.isArray(body.flags)
           ? body.flags.map((f: string) => f.trim()).filter(Boolean)
@@ -677,90 +620,20 @@ async function handleRequest(req: Request): Promise<Response> {
           return Response.json({ acceptedCount: 0, totalPoints: 0, message: 'Flag cannot be empty' }, { status: 400, headers })
         }
 
-        const results: Array<{ flag: string; status: 'accepted' | 'rejected'; message: string; points: number }> = []
-        let acceptedCount = 0
-
-        for (const rawFlag of flagList) {
-          const flagRecord = state.flags[rawFlag]
-
-          if (!flagRecord) {
-            results.push({ flag: rawFlag, status: 'rejected', message: 'Invalid flag or unknown service', points: 0 })
-            continue
-          }
-
-          if (flagRecord.teamId === submitterId) {
-            results.push({ flag: rawFlag, status: 'rejected', message: 'Cannot submit flag from your own service!', points: 0 })
-            continue
-          }
-
-          if (flagRecord.expiresTick < state.totalTickCount) {
-            results.push({ flag: rawFlag, status: 'rejected', message: 'Flag has expired for this tick', points: 0 })
-            continue
-          }
-
-          if (flagRecord.capturedBy.includes(submitterId)) {
-            results.push({ flag: rawFlag, status: 'rejected', message: 'You have already captured this flag!', points: 0 })
-            continue
-          }
-
-          // ACCEPTED!
-          flagRecord.capturedBy.push(submitterId)
-          acceptedCount += 1
-
-          const victim = state.teams.find((t) => t.id === flagRecord.teamId) || state.teams[0]
-          const svcKey = flagRecord.serviceKey
-
-          attacker.score += 100
-          attacker.captures += 1
-          if (!attacker.services[svcKey]) attacker.services[svcKey] = { attack: 0, defense: 0, availability: 0 }
-          attacker.services[svcKey].attack += 100
-
-          victim.score = Math.max(0, victim.score - 50)
-          if (!victim.services[svcKey]) victim.services[svcKey] = { attack: 0, defense: 0, availability: 0 }
-          victim.services[svcKey].defense = Math.max(0, victim.services[svcKey].defense - 50)
-
-          const attackEvent: AttackLog = {
-            id: `atk_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-            time: getTimeStr(),
-            attackerId: attacker.id,
-            victimId: victim.id,
-            service: svcKey,
-            text: `${attacker.name} → ${victim.name} (Flag captured!)`,
-            isNuke: true,
-            color: '#fab005',
-          }
-
-          state.attacks.unshift(attackEvent)
-          if (state.attacks.length > 50) state.attacks.pop()
-
-          results.push({
-            flag: rawFlag,
-            status: 'accepted',
-            message: `Flag accepted! +100 Attack Points against ${victim.name}`,
-            points: 100,
-          })
-
-          console.log(`[A&D Flag Captured] 💥 ${attacker.name} captured flag from ${victim.name} on [${svcKey}]!`)
-        }
-
-        if (acceptedCount > 0) {
-          sortTeams()
-          saveState()
-        }
-
+        const outcome = processFlagSubmission(flagList, submitterId)
         return Response.json(
           {
-            acceptedCount,
-            totalPoints: acceptedCount * 100,
-            results,
-            message: acceptedCount > 0
-              ? `Berhasil submit ${acceptedCount} flag! (+${acceptedCount * 100} poin)`
-              : results[0]?.message || 'Flag ditolak',
+            acceptedCount: outcome.acceptedCount,
+            totalPoints: outcome.totalPoints,
+            results: outcome.results,
+            message: outcome.acceptedCount > 0
+              ? `Berhasil submit ${outcome.acceptedCount} flag! (+${outcome.totalPoints} poin)`
+              : 'Flag ditolak',
           },
           { headers }
         )
       } catch (err: any) {
-        return Response.json({ acceptedCount: 0, totalPoints: 0, message: err.message || 'Submission error' }, { status: 400, headers })
+        return Response.json({ acceptedCount: 0, totalPoints: 0, message: err?.message || 'Submission error' }, { status: 400, headers })
       }
     }
 
@@ -952,15 +825,7 @@ async function handleRequest(req: Request): Promise<Response> {
           id: 'admin_1',
           userName: u || 'Admin',
           role: 'Admin',
-          team: {
-            id: 0,
-            name: 'Panitia IONIC 2026',
-            bio: 'Administrator Platform IONIC 2026',
-            avatar: null,
-            memberCount: 1,
-            locked: true,
-            members: [{ id: 'admin_1', userName: u || 'Admin', captain: true }],
-          },
+          team: null,
         }
       } else {
         let teamIdx = 1
@@ -1016,15 +881,7 @@ async function handleRequest(req: Request): Promise<Response> {
           id: 'admin_1',
           userName: u || 'Admin',
           role: 'Admin',
-          team: {
-            id: 0,
-            name: 'Panitia IONIC 2026',
-            bio: 'Administrator Platform IONIC 2026',
-            avatar: null,
-            memberCount: 1,
-            locked: true,
-            members: [{ id: 'admin_1', userName: 'Admin', captain: true }],
-          },
+          team: null,
         }
       } else {
         // Parse team number (e.g. team1 -> 1, t401 -> 1, team7 -> 7)
@@ -1108,34 +965,40 @@ async function handleRequest(req: Request): Promise<Response> {
     }
 
     if (path.includes('/details')) {
-      const z3roday = state.teams.find((t) => t.id === 7) || state.teams[6]
+      const isUserAdmin = loggedInUser?.role === 'Admin'
+      const targetTeam = isUserAdmin
+        ? null
+        : (loggedInUser?.team ? state.teams.find((t) => t.id === loggedInUser.team.id) : null)
+
       return Response.json(
         {
           challenges: {
             Crypto: [
-              { id: 1, title: 'simple-crypto', category: 'Crypto', score: 1000, solved: 3, bloods: [], disableBloodBonus: false },
+              { id: 1, title: 'simple-crypto', category: 'Crypto', score: 1000, solved: 0, bloods: [], disableBloodBonus: false },
             ],
             Pwn: [
-              { id: 2, title: 'simple-pwn', category: 'Pwn', score: 1000, solved: 2, bloods: [], disableBloodBonus: false },
+              { id: 2, title: 'simple-pwn', category: 'Pwn', score: 1000, solved: 0, bloods: [], disableBloodBonus: false },
             ],
             Web: [
-              { id: 3, title: 'simple-web', category: 'Web', score: 1000, solved: 4, bloods: [], disableBloodBonus: false },
-              { id: 4, title: 'coloring', category: 'Web', score: 1000, solved: 1, bloods: [], disableBloodBonus: false },
+              { id: 3, title: 'simple-web', category: 'Web', score: 1000, solved: 0, bloods: [], disableBloodBonus: false },
+              { id: 4, title: 'coloring', category: 'Web', score: 1000, solved: 0, bloods: [], disableBloodBonus: false },
             ],
           },
           challengeCount: 4,
-          rank: {
-            rank: z3roday.rank,
-            score: z3roday.score,
-            team: {
-              id: z3roday.id,
-              name: z3roday.name,
-              bio: z3roday.school,
-              avatar: z3roday.logo,
-            },
-            solvedCount: z3roday.captures,
-          },
-          teamToken: 'ad_token_z3roday_final_ionic2026',
+          rank: targetTeam
+            ? {
+                rank: targetTeam.rank,
+                score: targetTeam.score,
+                team: {
+                  id: targetTeam.id,
+                  name: targetTeam.name,
+                  bio: targetTeam.school,
+                  avatar: targetTeam.logo,
+                },
+                solvedCount: targetTeam.captures,
+              }
+            : null,
+          teamToken: targetTeam ? `ad_token_${targetTeam.code.toLowerCase()}_ionic2026` : 'ad_token_panitia_admin',
           writeupRequired: false,
           writeupDeadline: 0,
         },
@@ -1281,7 +1144,12 @@ async function handleRequest(req: Request): Promise<Response> {
         return Response.json({ success: true }, { headers })
       }
       if (req.method === 'POST') {
-        return Response.json(1, { headers })
+        const body = await req.json().catch(() => ({}))
+        const submitterId = loggedInUser?.team?.id || 7
+        const flagText = body.flag || ''
+        processFlagSubmission([flagText], submitterId)
+        lastSubmitId += 1
+        return Response.json(lastSubmitId, { headers })
       }
       return Response.json(
         {
@@ -1302,9 +1170,52 @@ async function handleRequest(req: Request): Promise<Response> {
       )
     }
 
-    // 5. Flag submit status
+    // 5. Flag submit status (Directly string 'Accepted' for AnswerResult enum match)
     if (path.match(/\/api\/game\/\d+\/challenges\/\d+\/status\/\d+/)) {
-      return Response.json({ status: 'Accepted' }, { headers })
+      return Response.json('Accepted', { headers })
+    }
+
+    // 5b. Game Monitor Endpoints (Events, Submissions, CheatInfo, Traffic, Sheet)
+    if (path.match(/\/api\/game\/\d+\/events/)) {
+      const eventsList = state.attacks.map((atk) => ({
+        type: 'FlagSubmit',
+        user: state.teams.find((t) => t.id === atk.attackerId)?.name || 'Team',
+        team: state.teams.find((t) => t.id === atk.attackerId)?.name || 'Team',
+        challenge: atk.service,
+        time: new Date().toISOString(),
+        values: [atk.service, state.teams.find((t) => t.id === atk.victimId)?.name || 'Enemy'],
+      }))
+      return Response.json(eventsList, { headers })
+    }
+
+    if (path.match(/\/api\/game\/\d+\/submissionsheet/)) {
+      const csv = 'time,team,user,challenge,status\n' + state.attacks.map((a) => `${a.time},${state.teams.find((t) => t.id === a.attackerId)?.name || 'Team'},User,${a.service},Accepted`).join('\n')
+      return new Response(csv, {
+        headers: {
+          'Content-Type': 'text/csv',
+          'Content-Disposition': 'attachment; filename="submissions.csv"',
+        },
+      })
+    }
+
+    if (path.match(/\/api\/game\/\d+\/submissions/)) {
+      const subsList = state.attacks.map((atk) => ({
+        answer: `flag{ionic26_${atk.victimId}_${atk.service}_...}`,
+        status: 'Accepted',
+        time: Date.now(),
+        user: state.teams.find((t) => t.id === atk.attackerId)?.name || 'Team',
+        team: state.teams.find((t) => t.id === atk.attackerId)?.name || 'Team',
+        challenge: atk.service,
+      }))
+      return Response.json(subsList, { headers })
+    }
+
+    if (path.match(/\/api\/game\/\d+\/cheatinfo/)) {
+      return Response.json([], { headers })
+    }
+
+    if (path.match(/\/api\/game\/\d+\/traffic/)) {
+      return Response.json([], { headers })
     }
 
     // 6. Admin Game Notices
