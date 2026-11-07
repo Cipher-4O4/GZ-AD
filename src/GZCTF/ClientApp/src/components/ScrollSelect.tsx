@@ -58,13 +58,15 @@ export const ScrollSelect: FC<ScrollSelectProps> = (props) => {
     ...ScrollAreaProps
   } = props
 
+  const safeItems = Array.isArray(items) ? items : []
+
   return (
     <ScrollArea type="never" {...ScrollAreaProps}>
-      {!items || items.length === 0 ? (
+      {safeItems.length === 0 ? (
         <Center h="100%">{emptyPlaceholder}</Center>
       ) : (
         <Stack gap={2} w="100%">
-          {items.map((item) => (
+          {safeItems.map((item) => (
             <ItemComponent
               key={item.id}
               onClick={onSelect && (() => onSelect(item.id))}
