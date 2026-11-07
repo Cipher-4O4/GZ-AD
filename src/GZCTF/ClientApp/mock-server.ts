@@ -344,6 +344,10 @@ let singleGame: any = {
   divisions: [{ id: 1, name: 'Finalist' }],
 }
 
+let divisionsList: any[] = [
+  { id: 1, name: 'Finalist', description: 'Babak Final Attack & Defense IONIC 2026', inviteCode: null, inviteCodeRequired: false },
+]
+
 let adminGameInfo: any = {
   id: 5,
   title: 'Final Cybersecurity IONIC 2026',
@@ -423,21 +427,19 @@ if (existsSync(STATE_FILE)) {
   }
 }
 
-if (!stateRestored) {
-  resetToStandbyState(true)
+if (!stateRestored || state.round === 0) {
+  resetToStandbyState(false)
+  state.round = 1
+  state.tick = 1
+  state.totalTickCount = 1
+  state.isPaused = false
+  state.lastTickTimestamp = Date.now()
+  generateFlagsForTick(1)
+  saveState()
 }
 
-let loggedInUser: { id: string; userName: string; role: string; team?: any } | null = {
-  id: 'admin_1',
-  userName: 'Admin',
-  role: 'Admin',
-  team: {
-    id: 7,
-    name: 'Z3RODAY',
-    bio: 'SMK NEGERI 1 BOYOLANGU',
-    avatar: '/logos/smkn1-boyolangu.png',
-  },
-}
+// User session state: null by default (Visitors are unauthenticated guests)
+let loggedInUser: { id: string; userName: string; role: string; team?: any } | null = null
 
 // Generate new flags for every team & service for the given tick
 function generateFlagsForTick(tickNum: number) {
@@ -936,22 +938,67 @@ async function handleRequest(req: Request): Promise<Response> {
     }
 
     if (path.includes('/account/login') || path === '/api/account/login') {
-      let u = 'Admin'
+      let u = 'admin'
+      let p = ''
       try {
         const body = await req.json().catch(() => ({}))
         if (body.userName) u = body.userName
+        if (body.password) p = body.password
       } catch {}
 
-      loggedInUser = {
-        id: 'admin_1',
-        userName: u,
-        role: 'Admin',
-        team: {
-          id: 7,
-          name: 'Z3RODAY',
-          bio: 'SMK NEGERI 1 BOYOLANGU',
-          avatar: '/logos/smkn1-boyolangu.png',
-        },
+      const cleanU = u.trim().toLowerCase()
+      if (cleanU === 'admin' || cleanU.startsWith('admin')) {
+        loggedInUser = {
+          id: 'admin_1',
+          userName: 'Admin',
+          role: 'Admin',
+          team: {
+            id: 0,
+            name: 'Panitia IONIC 2026',
+            bio: 'Administrator Platform IONIC 2026',
+            avatar: null,
+            memberCount: 1,
+            locked: true,
+            members: [{ id: 'admin_1', userName: 'Admin', captain: true }],
+          },
+        }
+      } else {
+        // Parse team number (e.g. team1 -> 1, t401 -> 1, team7 -> 7)
+        let teamIdx = 1
+        const teamNumMatch = cleanU.match(/(\d+)/)
+        if (teamNumMatch) {
+          const num = parseInt(teamNumMatch[1])
+          if (num >= 401 && num <= 410) {
+            teamIdx = num - 400
+          } else if (num >= 1 && num <= 10) {
+            teamIdx = num
+          }
+        } else {
+          const found = INITIAL_TEAMS.find(
+            (t) => t.name.toLowerCase().includes(cleanU) || cleanU.includes(t.name.toLowerCase())
+          )
+          if (found) teamIdx = found.id
+        }
+
+        const targetTeam = INITIAL_TEAMS.find((t) => t.id === teamIdx) || INITIAL_TEAMS[0]
+        loggedInUser = {
+          id: `user_t${targetTeam.id}`,
+          userName: `team${targetTeam.id}`,
+          role: 'User',
+          team: {
+            id: targetTeam.id,
+            name: targetTeam.name,
+            bio: targetTeam.school,
+            avatar: targetTeam.logo,
+            memberCount: 3,
+            locked: false,
+            members: [
+              { id: `user_t${targetTeam.id}`, userName: `team${targetTeam.id}`, captain: true },
+              { id: `user_t${targetTeam.id}_m1`, userName: 'Anggota 1', captain: false },
+              { id: `user_t${targetTeam.id}_m2`, userName: 'Anggota 2', captain: false },
+            ],
+          },
+        }
       }
 
       return Response.json(
@@ -959,7 +1006,7 @@ async function handleRequest(req: Request): Promise<Response> {
           id: loggedInUser.id,
           userName: loggedInUser.userName,
           role: loggedInUser.role,
-          token: 'jwt_admin_ionic2026',
+          token: `jwt_${loggedInUser.role.toLowerCase()}_ionic2026`,
         },
         { headers }
       )
@@ -971,18 +1018,15 @@ async function handleRequest(req: Request): Promise<Response> {
     }
 
     if (path === '/api/account/profile') {
-      const u = loggedInUser || {
-        id: 'admin_1',
-        userName: 'Admin',
-        role: 'Admin',
-        team: { id: 7, name: 'Panitia IONIC 2026' },
+      if (!loggedInUser) {
+        return Response.json({ message: 'Unauthorized' }, { status: 401, headers })
       }
       return Response.json(
         {
-          id: u.id,
-          userName: u.userName,
-          role: u.role,
-          team: u.team,
+          id: loggedInUser.id,
+          userName: loggedInUser.userName,
+          role: loggedInUser.role,
+          team: loggedInUser.team,
         },
         { headers }
       )
@@ -1075,7 +1119,162 @@ async function handleRequest(req: Request): Promise<Response> {
       return Response.json(adminGameInfo, { headers })
     }
 
-    // Admin & Edit Endpoints
+    // 1. Admin Game Divisions CRUD (GET, POST, PUT, DELETE)
+    if (path.match(/\/api\/edit\/games\/\d+\/divisions/)) {
+      if (req.method === 'GET') {
+        return Response.json(divisionsList, { headers })
+      }
+      if (req.method === 'POST') {
+        const body = await req.json().catch(() => ({}))
+        const newDiv = {
+          id: divisionsList.length + 1,
+          name: body.name || `Divisi ${divisionsList.length + 1}`,
+          description: body.description || '',
+          inviteCode: body.inviteCode || null,
+          inviteCodeRequired: !!body.inviteCodeRequired,
+        }
+        divisionsList.push(newDiv)
+        return Response.json(newDiv, { headers })
+      }
+      if (req.method === 'PUT') {
+        const body = await req.json().catch(() => ({}))
+        const divIdMatch = path.match(/\/api\/edit\/games\/\d+\/divisions\/(\d+)/)
+        const divId = divIdMatch ? parseInt(divIdMatch[1]) : 1
+        const target = divisionsList.find((d) => d.id === divId)
+        if (target) Object.assign(target, body)
+        return Response.json(target || body, { headers })
+      }
+      if (req.method === 'DELETE') {
+        const divIdMatch = path.match(/\/api\/edit\/games\/\d+\/divisions\/(\d+)/)
+        if (divIdMatch) {
+          const divId = parseInt(divIdMatch[1])
+          divisionsList = divisionsList.filter((d) => d.id !== divId)
+        }
+        return Response.json({ success: true }, { headers })
+      }
+    }
+
+    // 2. Game Participations for Review (GET, PUT)
+    if (path.match(/\/api\/game\/\d+\/participations/)) {
+      if (req.method === 'PUT') {
+        return Response.json({ success: true }, { headers })
+      }
+      const participations = state.teams.map((t, idx) => ({
+        id: idx + 1,
+        team: {
+          id: t.id,
+          name: t.name,
+          bio: t.school,
+          avatar: t.logo,
+          locked: false,
+          captainId: `user_t${t.id}`,
+          members: [
+            { id: `user_t${t.id}`, userName: t.name, captain: true, role: 'User' },
+            { id: `user_t${t.id}_m1`, userName: 'Anggota 1', captain: false, role: 'User' },
+            { id: `user_t${t.id}_m2`, userName: 'Anggota 2', captain: false, role: 'User' },
+          ],
+        },
+        registeredMembers: [`user_t${t.id}`],
+        divisionId: 1,
+        status: 'Accepted',
+      }))
+      return Response.json(participations, { headers })
+    }
+
+    // 3. Admin Game Challenges List (GET /api/edit/games/:id/challenges)
+    if (path.match(/\/api\/edit\/games\/\d+\/challenges$/)) {
+      if (req.method === 'POST') {
+        const body = await req.json().catch(() => ({}))
+        return Response.json({ id: Date.now(), ...body, isEnabled: true, score: 1000 }, { headers })
+      }
+      return Response.json(
+        [
+          { id: 1, title: 'simple-crypto', category: 'Crypto', score: 1000, type: 'Normal', isEnabled: true },
+          { id: 2, title: 'simple-pwn', category: 'Pwn', score: 1000, type: 'Normal', isEnabled: true },
+          { id: 3, title: 'simple-web', category: 'Web', score: 1000, type: 'Normal', isEnabled: true },
+          { id: 4, title: 'coloring', category: 'Web', score: 1000, type: 'Normal', isEnabled: true },
+        ],
+        { headers }
+      )
+    }
+
+    // 4. Single Challenge Detail (Admin & User: /api/edit/games/:id/challenges/:cId & /api/game/:id/challenges/:cId)
+    const chalDetailMatch = path.match(/\/api\/(?:edit\/games|game)\/\d+\/challenges\/(\d+)$/)
+    if (chalDetailMatch) {
+      const cId = parseInt(chalDetailMatch[1])
+      const chalMap: Record<number, any> = {
+        1: { id: 1, title: 'simple-crypto', category: 'Crypto', port: 8001 },
+        2: { id: 2, title: 'simple-pwn', category: 'Pwn', port: 8002 },
+        3: { id: 3, title: 'simple-web', category: 'Web', port: 8003 },
+        4: { id: 4, title: 'coloring', category: 'Web', port: 8004 },
+      }
+      const cInfo = chalMap[cId] || { id: cId, title: `Service #${cId}`, category: 'Web', port: 8000 + cId }
+      if (req.method === 'PUT') {
+        const body = await req.json().catch(() => ({}))
+        return Response.json({ ...cInfo, ...body }, { headers })
+      }
+      if (req.method === 'DELETE') {
+        return Response.json({ success: true }, { headers })
+      }
+      if (req.method === 'POST') {
+        return Response.json(1, { headers })
+      }
+      return Response.json(
+        {
+          id: cInfo.id,
+          title: cInfo.title,
+          category: cInfo.category,
+          type: 'Normal',
+          score: 1000,
+          content: `Layanan **${cInfo.title}** aktif pada target instance. Lindungi source code aplikasi dan perbaiki celah vulnerability sebelum dieksploitasi oleh tim lawan! Flag akan dirotasi otomatis setiap tick.`,
+          hints: [`Service aktif pada port ${cInfo.port}`, 'Akses melalui IP Team / WireGuard VPN'],
+          isEnabled: true,
+          acceptedCount: 5,
+          solved: false,
+          isSolved: false,
+          bloods: [],
+        },
+        { headers }
+      )
+    }
+
+    // 5. Flag submit status
+    if (path.match(/\/api\/game\/\d+\/challenges\/\d+\/status\/\d+/)) {
+      return Response.json({ status: 'Accepted' }, { headers })
+    }
+
+    // 6. Admin Game Notices
+    if (path.match(/\/api\/edit\/games\/\d+\/notices/)) {
+      if (req.method === 'POST') {
+        const body = await req.json().catch(() => ({}))
+        return Response.json({ id: Date.now(), ...body, time: new Date().toISOString() }, { headers })
+      }
+      return Response.json(
+        [
+          {
+            id: 1,
+            title: 'Final IONIC 2026',
+            content: 'Pertandingan Attack & Defense sedang berlangsung!',
+            time: new Date().toISOString(),
+            type: 'Normal',
+          },
+        ],
+        { headers }
+      )
+    }
+
+    // 7. Admin Writeups
+    if (path.startsWith('/api/admin/writeups')) {
+      return Response.json(
+        {
+          divisions: { '1': 'Finalist' },
+          writeups: [],
+        },
+        { headers }
+      )
+    }
+
+    // 8. General Admin & Edit Endpoints
     if (path.startsWith('/api/edit/games') || path.startsWith('/api/admin/games')) {
       if (path === '/api/edit/games' || path === '/api/edit/games/' || path === '/api/admin/games') {
         return Response.json(
@@ -1090,40 +1289,40 @@ async function handleRequest(req: Request): Promise<Response> {
       if (path.match(/\/api\/edit\/games\/\d+$/)) {
         return Response.json(adminGameInfo, { headers })
       }
-      if (path.includes('/challenges')) {
-        return Response.json(
-          {
-            total: 4,
-            length: 4,
-            data: [
-              { id: 1, title: 'simple-crypto', type: 'Normal', category: 'Crypto', score: 1000 },
-              { id: 2, title: 'simple-pwn', type: 'Normal', category: 'Pwn', score: 1000 },
-              { id: 3, title: 'simple-web', type: 'Normal', category: 'Web', score: 1000 },
-              { id: 4, title: 'coloring', type: 'Normal', category: 'Misc', score: 1000 },
-            ],
-          },
-          { headers }
-        )
-      }
       return Response.json({ total: 1, length: 1, data: [adminGameInfo] }, { headers })
     }
 
+    // 9. Admin Teams Management (GET, POST search, PUT, DELETE)
     if (path.startsWith('/api/admin/teams')) {
-      const teamsList = INITIAL_TEAMS.map((t) => ({
+      if (req.method === 'DELETE' || req.method === 'PUT') {
+        return Response.json({ success: true }, { headers })
+      }
+      const teamsList = state.teams.map((t) => ({
         id: t.id,
         name: t.name,
         bio: t.school,
         avatar: t.logo,
         memberCount: 3,
         locked: false,
+        members: [
+          { id: `user_t${t.id}`, userName: t.name, captain: true },
+          { id: `user_t${t.id}_m1`, userName: 'Anggota 1', captain: false },
+          { id: `user_t${t.id}_m2`, userName: 'Anggota 2', captain: false },
+        ],
       }))
       return Response.json({ total: teamsList.length, length: teamsList.length, data: teamsList }, { headers })
     }
 
     if (path.startsWith('/api/admin/users')) {
       const usersList = [
-        { id: '1', userName: 'Admin', email: 'admin@ionic.id', role: 'Admin', team: 'Panitia' },
-        { id: '2', userName: 'rootkids', email: 'rootkids@ionic.id', role: 'User', team: 'Z3RODAY' },
+        { id: 'admin_1', userName: 'admin', email: 'admin@ionic.id', role: 'Admin', team: 'Panitia' },
+        ...state.teams.map((t) => ({
+          id: `user_t${t.id}`,
+          userName: `team${t.id}`,
+          email: `team${t.id}@ionic.id`,
+          role: 'User',
+          team: t.name,
+        })),
       ]
       return Response.json({ total: usersList.length, length: usersList.length, data: usersList }, { headers })
     }
@@ -1195,85 +1394,61 @@ async function handleRequest(req: Request): Promise<Response> {
       )
     }
 
+    // 10. User Team Endpoints
     if (path === '/api/team' || path === '/api/team/') {
-      const userTeams = [
-        {
-          id: 7,
-          name: 'Z3RODAY',
-          bio: 'SMK NEGERI 1 BOYOLANGU',
-          avatar: null,
-          memberCount: 3,
-          locked: false,
-        },
-      ]
-      return Response.json(userTeams, { headers })
+      if (req.method === 'POST') {
+        const body = await req.json().catch(() => ({}))
+        return Response.json({ id: 99, name: body.name || 'New Team', memberCount: 1, members: [] }, { headers })
+      }
+      if (!loggedInUser || !loggedInUser.team) {
+        return Response.json([], { headers }) // Empty array for guests!
+      }
+      return Response.json([loggedInUser.team], { headers })
     }
 
-    if (path.match(/\/api\/game\/\d+\/check/)) {
+    if (path.match(/\/api\/team\/\d+$/)) {
+      const tId = parseInt(path.split('/').pop() || '7')
+      const target = state.teams.find((t) => t.id === tId) || state.teams[6]
       return Response.json(
         {
-          joinedTeams: [{ id: 7, division: 1 }],
-          joinableDivisions: [1],
+          id: target.id,
+          name: target.name,
+          bio: target.school,
+          avatar: target.logo,
+          locked: false,
+          memberCount: 3,
+          members: [
+            { id: `user_t${target.id}`, userName: target.name, captain: true },
+            { id: `user_t${target.id}_m1`, userName: 'Anggota 1', captain: false },
+            { id: `user_t${target.id}_m2`, userName: 'Anggota 2', captain: false },
+          ],
         },
         { headers }
       )
     }
 
-    if (path.match(/\/api\/game\/\d+\/details/)) {
+    if (path === '/api/teams' || path === '/api/teams/') {
+      const teamsList = state.teams.map((t) => ({
+        id: t.id,
+        name: t.name,
+        bio: t.school,
+        avatar: t.logo,
+        memberCount: 3,
+        locked: false,
+        members: [
+          { id: `user_t${t.id}`, userName: t.name, captain: true },
+          { id: `user_t${t.id}_m1`, userName: 'Anggota 1', captain: false },
+          { id: `user_t${t.id}_m2`, userName: 'Anggota 2', captain: false },
+        ],
+      }))
+      return Response.json({ total: teamsList.length, length: teamsList.length, data: teamsList }, { headers })
+    }
+
+    if (path.match(/\/api\/game\/\d+\/check/)) {
       return Response.json(
         {
-          challengeCount: 4,
-          teamToken: 'ad_tok_t407_2026',
-          writeupRequired: false,
-          writeupDeadline: 0,
-          challenges: {
-            Crypto: [
-              {
-                id: 1,
-                title: 'simple-crypto',
-                type: 'Normal',
-                category: 'Crypto',
-                score: 1000,
-                solved: 0,
-                originalScore: 1000,
-                isSolved: false,
-              },
-            ],
-            Pwn: [
-              {
-                id: 2,
-                title: 'simple-pwn',
-                type: 'Normal',
-                category: 'Pwn',
-                score: 1000,
-                solved: 0,
-                originalScore: 1000,
-                isSolved: false,
-              },
-            ],
-            Web: [
-              {
-                id: 3,
-                title: 'simple-web',
-                type: 'Normal',
-                category: 'Web',
-                score: 1000,
-                solved: 0,
-                originalScore: 1000,
-                isSolved: false,
-              },
-              {
-                id: 4,
-                title: 'coloring',
-                type: 'Normal',
-                category: 'Web',
-                score: 1000,
-                solved: 0,
-                originalScore: 1000,
-                isSolved: false,
-              },
-            ],
-          },
+          joinedTeams: loggedInUser?.team ? [{ id: loggedInUser.team.id, division: 1 }] : [],
+          joinableDivisions: [1],
         },
         { headers }
       )
@@ -1311,7 +1486,12 @@ async function handleRequest(req: Request): Promise<Response> {
     }
 
     if (path.match(/\/api\/game\/\d+$/)) {
-      return Response.json(singleGame, { headers })
+      const activeGame = {
+        ...singleGame,
+        teamName: loggedInUser?.team?.name || null,
+        status: loggedInUser ? 'Accepted' : 'Unsubmitted',
+      }
+      return Response.json(activeGame, { headers })
     }
 
     // ==========================================
