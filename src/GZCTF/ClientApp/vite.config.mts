@@ -41,6 +41,7 @@ export default defineConfig(({ mode }) => {
     preview: { port: 64000 },
     build: {
       outDir: 'build',
+      emptyOutDir: false,
       assetsDir: 'static',
       cssMinify: 'esbuild',
       cssCodeSplit: false,

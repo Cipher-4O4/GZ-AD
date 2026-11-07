@@ -1,5 +1,5 @@
 import { Button, Center, Text, Stack, Title, useMantineTheme, Textarea, Group } from '@mantine/core'
-import { FC } from 'react'
+import { FC, useEffect } from 'react'
 import { getErrorMessage, FallbackProps } from 'react-error-boundary'
 import { useTranslation } from 'react-i18next'
 import { clearLocalCache } from '@Utils/Cache'
@@ -17,6 +17,17 @@ export const ErrorFallback: FC<FallbackProps> = ({ error, resetErrorBoundary }: 
   const theme = useMantineTheme()
   const { t } = useTranslation()
   const isMobile = useIsMobile()
+
+  useEffect(() => {
+    const msg = getErrorMessage(error) || ''
+    if (msg.includes('dynamically imported module') || msg.includes('Failed to fetch dynamically imported module')) {
+      const reloaded = sessionStorage.getItem('chunk_reload')
+      if (!reloaded) {
+        sessionStorage.setItem('chunk_reload', '1')
+        window.location.reload()
+      }
+    }
+  }, [error])
 
   return (
     <Center h="100vh" px="15%">
