@@ -1214,6 +1214,41 @@ async function handleRequest(req: Request): Promise<Response> {
       return Response.json([], { headers })
     }
 
+    // Traffic Capturing Endpoints (/api/game/games/:id/captures, /api/game/captures/:cId, /api/game/captures/:cId/:partId)
+    if (path.match(/\/api\/game\/games\/\d+\/captures/)) {
+      const chTraffic = SERVICES.map((s, idx) => ({
+        id: idx + 1,
+        title: s.name,
+        category: s.category,
+        type: 'Normal',
+        isEnabled: true,
+        count: 0,
+      }))
+      return Response.json(chTraffic, { headers })
+    }
+
+    if (path.match(/\/api\/game\/captures\/\d+\/\d+/)) {
+      if (req.method === 'DELETE') {
+        return Response.json({ success: true }, { headers })
+      }
+      return Response.json([], { headers })
+    }
+
+    if (path.match(/\/api\/game\/captures\/\d+$/)) {
+      if (req.method === 'DELETE') {
+        return Response.json({ success: true }, { headers })
+      }
+      const teamCaptures = state.teams.map((t) => ({
+        id: t.id,
+        teamId: t.id,
+        name: t.name,
+        division: 'Finalist',
+        avatar: t.logo,
+        count: 0,
+      }))
+      return Response.json(teamCaptures, { headers })
+    }
+
     if (path.match(/\/api\/game\/\d+\/traffic/)) {
       return Response.json([], { headers })
     }

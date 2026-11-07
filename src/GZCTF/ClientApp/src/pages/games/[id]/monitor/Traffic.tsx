@@ -128,9 +128,13 @@ const Traffic: FC = () => {
     }
   }
 
-  const totalFileSize = fileRecords?.reduce((acc, cur) => acc + (cur?.size ?? 0), 0) ?? 0
+  const totalFileSize = Array.isArray(fileRecords)
+    ? fileRecords.reduce((acc, cur) => acc + (cur?.size ?? 0), 0)
+    : 0
 
-  const orderedFileRecords = fileRecords?.sort((a, b) => dayjs(b.updateTime).diff(dayjs(a.updateTime))) ?? []
+  const orderedFileRecords = Array.isArray(fileRecords)
+    ? [...fileRecords].sort((a, b) => dayjs(b.updateTime).diff(dayjs(a.updateTime)))
+    : []
 
   const innerStyle: CSSProperties = {
     borderRight: `${rem(2)} solid ${colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[4]}`,
@@ -139,8 +143,12 @@ const Traffic: FC = () => {
   const scrollHeight = 'calc(100vh - 174px)'
   const headerHeight = rem(32)
 
-  challengeTraffic?.sort((a, b) => a.category?.localeCompare(b.category ?? '') ?? 0)
-  teamTraffic?.sort((a, b) => (a.teamId ?? 0) - (b.teamId ?? 0))
+  if (Array.isArray(challengeTraffic)) {
+    challengeTraffic.sort((a, b) => a.category?.localeCompare(b.category ?? '') ?? 0)
+  }
+  if (Array.isArray(teamTraffic)) {
+    teamTraffic.sort((a, b) => (a.teamId ?? 0) - (b.teamId ?? 0))
+  }
 
   return (
     <WithGameMonitor isLoading={!challengeTraffic}>
