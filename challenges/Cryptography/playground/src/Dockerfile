@@ -10,7 +10,7 @@ WORKDIR /app
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app.py Makefile /app/
+COPY app.py server.py Makefile /app/
 COPY supervisord.conf /etc/supervisord.conf
 
 EXPOSE 6969
