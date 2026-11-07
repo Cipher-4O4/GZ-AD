@@ -42,6 +42,10 @@ services:
       dockerfile: Dockerfile
     container_name: chall-crypto-playground
     restart: unless-stopped
+    ulimits:
+      nofile:
+        soft: 1024
+        hard: 1024
     ports:
       - "6969:6969"
     networks:
@@ -56,6 +60,10 @@ services:
       dockerfile: Dockerfile
     container_name: chall-pwn-cpppp
     restart: unless-stopped
+    ulimits:
+      nofile:
+        soft: 1024
+        hard: 1024
     ports:
       - "7070:7070"
     networks:
