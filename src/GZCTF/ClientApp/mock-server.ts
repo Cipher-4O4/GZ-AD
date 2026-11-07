@@ -4,6 +4,7 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
 import { join } from 'path'
 import { spawnSync } from 'child_process'
+import { generateKeyPairSync } from 'crypto'
 import { gzipSync } from 'bun'
 
 const STATIC_CACHE = new Map<string, { raw: Buffer; gz: Uint8Array; contentType?: string }>()
@@ -27,6 +28,50 @@ const DATA_DIR = join(process.cwd(), 'data')
 const STATE_FILE = join(DATA_DIR, 'ad-state.json')
 const CERT_FILE = join(DATA_DIR, 'cert.pem')
 const KEY_FILE = join(DATA_DIR, 'key.pem')
+const WG_KEYS_FILE = join(DATA_DIR, 'wg-server.json')
+
+let wgServer = { privateKey: '', publicKey: '' }
+if (existsSync(WG_KEYS_FILE)) {
+  try {
+    wgServer = JSON.parse(readFileSync(WG_KEYS_FILE, 'utf-8'))
+  } catch {}
+}
+
+if (!wgServer.privateKey || !wgServer.publicKey) {
+  try {
+    const { privateKey, publicKey } = generateKeyPairSync('x25519')
+    wgServer = {
+      privateKey: privateKey.export({ format: 'der', type: 'pkcs8' }).slice(16).toString('base64'),
+      publicKey: publicKey.export({ format: 'der', type: 'spki' }).slice(12).toString('base64'),
+    }
+    writeFileSync(WG_KEYS_FILE, JSON.stringify(wgServer, null, 2))
+    console.log('[WireGuard Engine] Initialized real Server Curve25519 Keypair')
+  } catch (err) {
+    console.warn('[WireGuard Engine] Fallback key generation:', err)
+  }
+}
+
+function generateClientWgConfig(teamId: number = 7) {
+  let clientPriv = 'mDnMN//gRXSmfU7y/dV+DunwmECUs3DzS9YBkQNPG3o='
+  try {
+    const { privateKey } = generateKeyPairSync('x25519')
+    clientPriv = privateKey.export({ format: 'der', type: 'pkcs8' }).slice(16).toString('base64')
+  } catch {}
+
+  const clientIp = `10.43.170.${100 + teamId}`
+
+  return `[Interface]
+PrivateKey = ${clientPriv}
+Address = ${clientIp}/24
+DNS = 1.1.1.1
+
+[Peer]
+PublicKey = ${wgServer.publicKey || '5WMyVjhqnLF/8e88ZbcWhGKR8OIP/ofvcADr5rahTUM='}
+Endpoint = 10.43.170.150:51820
+AllowedIPs = 10.43.170.0/24, 172.0.9.0/24
+PersistentKeepalive = 25
+`
+}
 
 if (!existsSync(DATA_DIR)) {
   mkdirSync(DATA_DIR, { recursive: true })
@@ -600,6 +645,19 @@ async function handleRequest(req: Request): Promise<Response> {
         }))
 
       return Response.json({ teamId, flags: myFlags }, { headers })
+    }
+
+    // 4b. WireGuard VPN Configuration Endpoint (Real Curve25519 Keys)
+    if (path.match(/\/api\/game\/\d+\/ad\/vpn/) || path === '/api/ad/vpn') {
+      const teamId = loggedInUser?.team?.id || 7
+      const confText = generateClientWgConfig(teamId)
+      return new Response(confText, {
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Content-Disposition': `attachment; filename="ad-game-${teamId}.conf"`,
+          'Access-Control-Allow-Origin': '*',
+        },
+      })
     }
 
     // 5. Flag Submission Endpoint (Single & Batch)

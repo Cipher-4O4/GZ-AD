@@ -1,4 +1,4 @@
-# ⚔️ PANDUAN LENGKAP SIMULASI ATTACK & DEFENSE (A&D) — IONIC 2026
+    # ⚔️ PANDUAN LENGKAP SIMULASI ATTACK & DEFENSE (A&D) — IONIC 2026
 
 Panduan ini menjelaskan alur kerja, strategi penyerangan (*Attack*), pertahanan (*Defense*), cara mengeksploitasi celah service lawan, serta script otomatisasi penyerahan flag (*Auto-Submit Exploit Script*).
 

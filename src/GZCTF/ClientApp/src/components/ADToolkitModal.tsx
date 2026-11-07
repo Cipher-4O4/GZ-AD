@@ -85,18 +85,41 @@ export const ADToolkitModal: FC<ADToolkitModalProps> = ({ opened, onClose, gameI
     })
   }
 
-  const downloadVpnConfig = () => {
-    const dummyConfig = `[Interface]
-PrivateKey = aDummyPrivateKeyForAandDGameUser=
-Address = 10.43.228.152/24
-DNS = 10.43.0.1
+  const downloadVpnConfig = async () => {
+    try {
+      const res = await fetch(`/api/Game/${gameId}/Ad/Vpn`)
+      if (res.ok) {
+        const confText = await res.text()
+        const blob = new Blob([confText], { type: 'text/plain' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `ad-game-${gameId}.conf`
+        a.click()
+        URL.revokeObjectURL(url)
+        notifications.show({
+          color: 'teal',
+          title: 'WireGuard Config Diunduh',
+          message: 'Konfigurasi VPN WireGuard dengan keypair asli berhasil dibuat.',
+          icon: <Icon path={mdiCheck} size={1} />,
+        })
+        return
+      }
+    } catch {}
+
+    const randPriv = Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) => String.fromCharCode(b)).join('')
+    const privB64 = btoa(randPriv)
+    const fallbackConfig = `[Interface]
+PrivateKey = ${privB64}
+Address = 10.43.170.107/24
+DNS = 1.1.1.1
 
 [Peer]
-PublicKey = aDummyServerPublicKey=
+PublicKey = 5WMyVjhqnLF/8e88ZbcWhGKR8OIP/ofvcADr5rahTUM=
 Endpoint = 10.43.170.150:51820
-AllowedIPs = 10.43.0.0/16, 172.0.0.0/8
+AllowedIPs = 10.43.170.0/24, 172.0.9.0/24
 PersistentKeepalive = 25`
-    const blob = new Blob([dummyConfig], { type: 'text/plain' })
+    const blob = new Blob([fallbackConfig], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
