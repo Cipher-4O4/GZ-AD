@@ -249,7 +249,10 @@ export const AD_SCOREBOARD: AdScoreRow[] = AD_TEAMS_BY_RANK.map((team) => ({
 }))
 
 export const AD_MAX_CELL = Math.max(
-  ...AD_SCOREBOARD.flatMap((row) => Object.values(row.services).flatMap((cell) => [cell.attack, cell.availability]))
+  1,
+  ...AD_SCOREBOARD.flatMap((row) =>
+    row.services ? Object.values(row.services).flatMap((cell) => (cell ? [cell.attack ?? 0, cell.availability ?? 0] : [0, 0])) : [0]
+  )
 )
 
 export const formatPoints = (value: number) =>
