@@ -257,7 +257,8 @@ export const AttackMap: FC = () => {
   ])
 
   const containerRef = useRef<HTMLDivElement>(null)
-  const processedAttackIds = useRef<Set<string>>(new Set(['atk_init_1', 'atk_init_2', 'atk_init_3']))
+  const isInitialFetch = useRef<boolean>(true)
+  const processedAttackIds = useRef<Set<string>>(new Set())
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -302,53 +303,73 @@ export const AttackMap: FC = () => {
 
         // Process any incoming attacks
         if (data.attacks && Array.isArray(data.attacks)) {
-          for (const atk of data.attacks) {
-            if (!processedAttackIds.current.has(atk.id)) {
+          if (isInitialFetch.current) {
+            // On first load, mark existing historical attacks as processed so they don't fire active laser lines
+            for (const atk of data.attacks) {
               processedAttackIds.current.add(atk.id)
-
-              const attackerNode = FINALIST_TEAMS.find((t) => parseInt(t.id) === atk.attackerId) || FINALIST_TEAMS[0]
-              const victimNode = FINALIST_TEAMS.find((t) => parseInt(t.id) === atk.victimId) || FINALIST_TEAMS[1]
-
-              // Parabolic trajectory arc calculation
-              const x1 = attackerNode.x * 10.24
-              const y1 = attackerNode.y * 5.71
-              const x2 = victimNode.x * 10.24
-              const y2 = victimNode.y * 5.71
-
-              const midX = (x1 + x2) / 2
-              const dist = Math.hypot(x2 - x1, y2 - y1)
-              const arcElevation = Math.max(60, Math.min(150, dist * 0.35))
-              const midY = Math.min(y1, y2) - arcElevation
-              const pathD = `M ${x1} ${y1} Q ${midX} ${midY} ${x2} ${y2}`
-
-              const newAttackEvent: AttackEvent = {
-                id: atk.id,
-                time: atk.time,
-                service: atk.service,
-                attacker: attackerNode,
-                victim: victimNode,
-                pathD,
-                color: atk.color || '#fab005',
-              }
-
-              setActiveAttacks((prev) => [...prev.slice(-3), newAttackEvent])
-              setActiveAttacker(attackerNode)
-              setNukeDetonation(victimNode)
-
-              setActivityLogs((prev) => [
-                {
+            }
+            if (data.attacks.length > 0) {
+              setActivityLogs(
+                data.attacks.slice(0, 20).map((atk: any) => ({
                   time: atk.time,
                   service: atk.service,
                   text: atk.text,
                   isNuke: atk.isNuke,
-                },
-                ...prev.slice(0, 20),
-              ])
+                }))
+              )
+            }
+            isInitialFetch.current = false
+          } else {
+            for (const atk of data.attacks) {
+              if (!processedAttackIds.current.has(atk.id)) {
+                processedAttackIds.current.add(atk.id)
 
-              setTimeout(() => {
-                setNukeDetonation(null)
-                setActiveAttacker(null)
-              }, 2500)
+                const attackerNode = FINALIST_TEAMS.find((t) => parseInt(t.id) === atk.attackerId) || FINALIST_TEAMS[0]
+                const victimNode = FINALIST_TEAMS.find((t) => parseInt(t.id) === atk.victimId) || FINALIST_TEAMS[1]
+
+                // Parabolic trajectory arc calculation
+                const x1 = attackerNode.x * 10.24
+                const y1 = attackerNode.y * 5.71
+                const x2 = victimNode.x * 10.24
+                const y2 = victimNode.y * 5.71
+
+                const midX = (x1 + x2) / 2
+                const dist = Math.hypot(x2 - x1, y2 - y1)
+                const arcElevation = Math.max(60, Math.min(150, dist * 0.35))
+                const midY = Math.min(y1, y2) - arcElevation
+                const pathD = `M ${x1} ${y1} Q ${midX} ${midY} ${x2} ${y2}`
+
+                const newAttackEvent: AttackEvent = {
+                  id: atk.id,
+                  time: atk.time,
+                  service: atk.service,
+                  attacker: attackerNode,
+                  victim: victimNode,
+                  pathD,
+                  color: atk.color || '#fab005',
+                }
+
+                setActiveAttacks((prev) => [...prev, newAttackEvent])
+                setActiveAttacker(attackerNode)
+                setNukeDetonation(victimNode)
+
+                setActivityLogs((prev) => [
+                  {
+                    time: atk.time,
+                    service: atk.service,
+                    text: atk.text,
+                    isNuke: atk.isNuke,
+                  },
+                  ...prev.slice(0, 20),
+                ])
+
+                // Auto-remove attack arc and detonation quickly (~2.2s) so the beam disappears after shooting
+                setTimeout(() => {
+                  setActiveAttacks((prev) => prev.filter((a) => a.id !== atk.id))
+                  setNukeDetonation((curr) => (curr?.id === victimNode.id ? null : curr))
+                  setActiveAttacker((curr) => (curr?.id === attackerNode.id ? null : curr))
+                }, 2200)
+              }
             }
           }
         }
@@ -408,6 +429,12 @@ export const AttackMap: FC = () => {
         @keyframes nukeHazardFlash {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.4; transform: scale(0.92); }
+        }
+        @keyframes attackFadeOut {
+          0% { opacity: 0; }
+          12% { opacity: 1; }
+          70% { opacity: 1; }
+          100% { opacity: 0; }
         }
       `}</style>
 
@@ -704,7 +731,7 @@ export const AttackMap: FC = () => {
 
             {/* PARABOLIC BALLISTIC MISSILE TRAJECTORIES */}
             {activeAttacks.map((atk) => (
-              <g key={atk.id}>
+              <g key={atk.id} style={{ animation: 'attackFadeOut 2.2s ease-out forwards' }}>
                 {/* Missile Outer Flame Trail */}
                 <path
                   d={atk.pathD}
