@@ -194,16 +194,16 @@ interface GameState {
 }
 
 const INITIAL_BROKEN_STATUS: Record<number, Record<string, 'UP' | 'FAULT' | 'DOWN'>> = {
-  1: { playground: 'FAULT', cpppp: 'UP', 'classic-api': 'UP', coloring: 'DOWN' },
-  2: { playground: 'UP', cpppp: 'FAULT', 'classic-api': 'DOWN', coloring: 'UP' },
-  3: { playground: 'DOWN', cpppp: 'UP', 'classic-api': 'FAULT', coloring: 'UP' },
-  4: { playground: 'UP', cpppp: 'DOWN', 'classic-api': 'UP', coloring: 'FAULT' },
-  5: { playground: 'FAULT', cpppp: 'UP', 'classic-api': 'DOWN', coloring: 'UP' },
-  6: { playground: 'DOWN', cpppp: 'FAULT', 'classic-api': 'UP', coloring: 'UP' },
-  7: { playground: 'UP', cpppp: 'DOWN', 'classic-api': 'FAULT', coloring: 'UP' }, // Z3RODAY
-  8: { playground: 'FAULT', cpppp: 'UP', 'classic-api': 'UP', coloring: 'DOWN' },
-  9: { playground: 'UP', cpppp: 'FAULT', 'classic-api': 'DOWN', coloring: 'UP' },
-  10: { playground: 'DOWN', cpppp: 'UP', 'classic-api': 'FAULT', coloring: 'UP' },
+  1: { playground: 'UP', cpppp: 'UP', 'classic-api': 'UP', coloring: 'UP' },
+  2: { playground: 'UP', cpppp: 'UP', 'classic-api': 'UP', coloring: 'UP' },
+  3: { playground: 'UP', cpppp: 'UP', 'classic-api': 'UP', coloring: 'UP' },
+  4: { playground: 'UP', cpppp: 'UP', 'classic-api': 'UP', coloring: 'UP' },
+  5: { playground: 'UP', cpppp: 'UP', 'classic-api': 'UP', coloring: 'UP' },
+  6: { playground: 'UP', cpppp: 'UP', 'classic-api': 'UP', coloring: 'UP' },
+  7: { playground: 'UP', cpppp: 'DOWN', 'classic-api': 'FAULT', coloring: 'UP' }, // Z3RODAY (SMKN 1 Boyolangu) - Latihan defense
+  8: { playground: 'UP', cpppp: 'UP', 'classic-api': 'UP', coloring: 'UP' },
+  9: { playground: 'UP', cpppp: 'UP', 'classic-api': 'UP', coloring: 'UP' },
+  10: { playground: 'UP', cpppp: 'UP', 'classic-api': 'UP', coloring: 'UP' },
 }
 
 let state: GameState = {
@@ -350,6 +350,29 @@ if (!stateRestored || state.round === 0) {
   generateFlagsForTick(1)
   saveState()
 }
+
+// Force online status for all 9 opponent teams, and Mumble for Z3RODAY (SMKN 1 Boyolangu - Team 7)
+for (const team of state.teams) {
+  if (team.id === 7) {
+    team.status = 'Mumble'
+    if (!team.services) team.services = {} as any
+    team.services.playground = { attack: team.services.playground?.attack || 0, defense: team.services.playground?.defense || 0, availability: 0, status: 'UP' } as any
+    team.services.coloring = { attack: team.services.coloring?.attack || 0, defense: team.services.coloring?.defense || 0, availability: 0, status: 'UP' } as any
+    team.services.cpppp = { attack: team.services.cpppp?.attack || 0, defense: team.services.cpppp?.defense || 0, availability: 0, status: 'DOWN' } as any
+    team.services['classic-api'] = { attack: team.services['classic-api']?.attack || 0, defense: team.services['classic-api']?.defense || 0, availability: 0, status: 'FAULT' } as any
+  } else {
+    team.status = 'Operational'
+    if (!team.services) team.services = {} as any
+    for (const svc of SERVICES) {
+      if (!team.services[svc.key]) {
+        team.services[svc.key] = { attack: 0, defense: 0, availability: 0, status: 'UP' } as any
+      } else {
+        ;(team.services[svc.key] as any).status = 'UP'
+      }
+    }
+  }
+}
+saveState()
 
 // User session state: null by default (Visitors are unauthenticated guests)
 let loggedInUser: { id: string; userName: string; role: string; team?: any } | null = null

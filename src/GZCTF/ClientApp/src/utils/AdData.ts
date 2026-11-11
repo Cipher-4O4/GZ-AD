@@ -114,7 +114,7 @@ export const FINALIST_OFFICIAL_TEAMS: Array<{
     school: 'SMK NEGERI 1 BOYOLANGU',
     score: 47177.1,
     logo: '/logos/smkn1-boyolangu.png',
-    status: 'Operational',
+    status: 'Mumble',
     self: true,
   },
   {
@@ -122,7 +122,7 @@ export const FINALIST_OFFICIAL_TEAMS: Array<{
     school: 'SMK NEGERI 3 TUBAN',
     score: 47150.0,
     logo: '/logos/smkn3-tuban.png',
-    status: 'Mumble',
+    status: 'Operational',
   },
   {
     name: 'WilSec - Panitia',
