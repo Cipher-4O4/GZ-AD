@@ -454,12 +454,93 @@ function sortTeams() {
   })
 }
 
-// Tick Timer loop running every 1000ms
+// ==========================================
+// Autonomous AI Bot Warfare Engine
+// ==========================================
+let botWarEnabled = true
+let nextBotAttackTime = Date.now() + 3000 + Math.random() * 4000
+
+function triggerAiBotAttack() {
+  if (state.isPaused || state.round === 0 || !botWarEnabled) return
+
+  // Opponent bot teams (1, 2, 3, 4, 5, 6, 8, 9, 10)
+  const opponentIds = [1, 2, 3, 4, 5, 6, 8, 9, 10]
+  const attackerId = opponentIds[Math.floor(Math.random() * opponentIds.length)]
+
+  // Potential victims: all 10 teams except current attacker (including user's team 7 Z3RODAY)
+  const allTeamIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  const possibleVictims = allTeamIds.filter((id) => id !== attackerId)
+  const victimId = possibleVictims[Math.floor(Math.random() * possibleVictims.length)]
+
+  const attacker = state.teams.find((t) => t.id === attackerId)
+  const victim = state.teams.find((t) => t.id === victimId)
+  if (!attacker || !victim) return
+
+  // Select target service
+  const svc = SERVICES[Math.floor(Math.random() * SERVICES.length)]
+
+  // If victim is Team 7 (Z3RODAY):
+  // Check service condition: if FAULT or DOWN, attack is 100% successful!
+  // If UP (patched/defended), 75% defense success rate (bot attack blocked)!
+  const victimSvcStatus = (victim.services[svc.key] as any)?.status || 'UP'
+  if (victim.id === 7 && victimSvcStatus === 'UP' && Math.random() < 0.75) {
+    // Defense holds! No points deducted, no breach
+    return
+  }
+
+  const attackPoints = 100
+  const defensePenalty = 50
+
+  attacker.score += attackPoints
+  attacker.captures += 1
+  if (!attacker.services[svc.key]) attacker.services[svc.key] = { attack: 0, defense: 0, availability: 0 }
+  attacker.services[svc.key].attack += attackPoints
+
+  victim.score = Math.max(0, victim.score - defensePenalty)
+  if (!victim.services[svc.key]) victim.services[svc.key] = { attack: 0, defense: 0, availability: 0 }
+  victim.services[svc.key].defense = Math.max(0, victim.services[svc.key].defense - defensePenalty)
+
+  const attackEvent: AttackLog = {
+    id: `atk_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+    time: getTimeStr(),
+    attackerId: attacker.id,
+    victimId: victim.id,
+    service: svc.key,
+    text: `${attacker.name} → ${victim.name} (Flag captured!)`,
+    isNuke: true,
+    color: svc.color || '#fab005',
+  }
+
+  state.attacks.unshift(attackEvent)
+  if (state.attacks.length > 60) state.attacks.pop()
+
+  ATTACK_LOGS.unshift({
+    id: attackEvent.id,
+    time: attackEvent.time,
+    attacker: attacker.name,
+    target: victim.name,
+    service: svc.key,
+    status: 'SUCCESS',
+    flag: `flag{ionic26_${victim.id}_${svc.key}_t${state.totalTickCount}_ai}`,
+  })
+  if (ATTACK_LOGS.length > 60) ATTACK_LOGS.pop()
+
+  sortTeams()
+  saveState()
+}
+
+// Tick Timer & AI Warfare Loop
 setInterval(() => {
   if (state.isPaused || state.round === 0) return
   const elapsed = Math.floor((Date.now() - state.lastTickTimestamp) / 1000)
   if (elapsed >= state.tickSeconds) {
     advanceTick()
+  }
+
+  // Trigger continuous autonomous bot warfare every 4 to 8 seconds
+  if (botWarEnabled && Date.now() >= nextBotAttackTime) {
+    triggerAiBotAttack()
+    nextBotAttackTime = Date.now() + 4000 + Math.random() * 4500
   }
 }, 1000)
 
@@ -610,6 +691,7 @@ async function handleRequest(req: Request): Promise<Response> {
           teams: state.teams,
           attacks: state.attacks.slice(0, 15),
           services: SERVICES,
+          botWarEnabled,
         },
         { headers }
       )
@@ -870,6 +952,15 @@ async function handleRequest(req: Request): Promise<Response> {
         } else if (action === 'sabotage') {
           resetToStandbyState(true)
           return Response.json({ success: true, message: 'Layanan awal telah disabotase (Mumble & Offline)' }, { headers })
+        } else if (action === 'toggle_bot') {
+          botWarEnabled = !botWarEnabled
+          return Response.json({ success: true, botWarEnabled, message: `AI Bot War ${botWarEnabled ? 'Diaktifkan' : 'Dinonaktifkan'}` }, { headers })
+        } else if (action === 'enable_bot') {
+          botWarEnabled = true
+          return Response.json({ success: true, botWarEnabled, message: 'AI Bot War Diaktifkan' }, { headers })
+        } else if (action === 'disable_bot') {
+          botWarEnabled = false
+          return Response.json({ success: true, botWarEnabled, message: 'AI Bot War Dinonaktifkan' }, { headers })
         } else if (action === 'repair_all') {
           for (const team of state.teams) {
             for (const svc of SERVICES) {

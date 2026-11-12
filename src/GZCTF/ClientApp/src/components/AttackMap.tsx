@@ -615,6 +615,37 @@ export const AttackMap: FC = () => {
             </Text>
           </Box>
 
+          {/* Autonomous AI Warfare HUD Badge */}
+          <Box
+            style={{
+              position: 'absolute',
+              top: '16px',
+              left: '390px',
+              zIndex: 5,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              backgroundColor: 'rgba(5, 16, 16, 0.75)',
+              padding: '6px 14px',
+              borderRadius: '20px',
+              border: '1px solid rgba(250, 82, 82, 0.4)',
+              backdropFilter: 'blur(6px)',
+            }}
+          >
+            <Box
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: '#fa5252',
+                boxShadow: '0 0 10px #fa5252',
+              }}
+            />
+            <Text size="11px" fw={800} c="#fa5252" ff="monospace" style={{ letterSpacing: '0.08em' }}>
+              AUTONOMOUS AI WARFARE · ACTIVE
+            </Text>
+          </Box>
+
           {/* Coordinate Watermarks */}
           <Text
             size="10px"
