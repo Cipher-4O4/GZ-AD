@@ -1074,7 +1074,7 @@ async function handleRequest(req: Request): Promise<Response> {
       )
     }
 
-    if (path === '/api/config/captcha' || path.includes('/config/captcha')) {
+    if (path === '/api/captcha' || path === '/api/config/captcha' || path.includes('/captcha')) {
       return Response.json({ type: 'None' }, { headers })
     }
 

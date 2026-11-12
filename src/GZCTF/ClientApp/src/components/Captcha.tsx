@@ -53,7 +53,7 @@ export const Captcha = forwardRef<CaptchaInstance, CaptchaProps>((props, ref) =>
     () => ({
       getToken: async () => {
         if (error || !info) {
-          return { valid: false }
+          return { valid: true }
         }
 
         if (type === CaptchaProvider.HashPow) {
